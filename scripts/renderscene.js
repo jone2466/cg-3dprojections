@@ -60,7 +60,7 @@ function init() {
     };
 
     // event handler for pressing arrow keys
-    document.addEventListener('keydown', onKeyDown, false);
+    //document.addEventListener('keydown', onKeyDown, false);
     
     // start animation loop
     start_time = performance.now(); // current timestamp in milliseconds
@@ -86,24 +86,34 @@ function animate(timestamp) {
 // Main drawing code - use information contained in variable `scene`
 function drawScene() {
     console.log(scene);
-    if(scene.type == 'perspective'){
-        let transfrom = mat4x4Perspective(scene.prp, scene.srp, scene.vup, scene.clip);
-
-        for(let i = 0; i<models.length; i++){
-            for(let j = 0; j<models[i].vertices.length; j++){
-                models[i].vertices[j] = Matrix.multiply([transfrom, models[i].vertices[j]]);
-            }
-        }
-
-        
-    }
-    else{
-        let transform = mat4x4Parallel(scene.prp, scene.srp, scene.vup, scene.clip);
-    }
+    var transform;
+    let model = [];
     // TODO: implement drawing here!
     // For each model, for each edge
     //  * transform to canonical view volume
+    if(scene.type == 'perspective') {
+        transform = mat4x4Perspective(scene.prp, scene.srp, scene.vup, scene.clip);
+        for(let i = 0; i < scene.models.length; ++i) {
+            model[i] = scene.models[i];
+            for(let j = 0; j < model[i].vertices.length; ++i) {
+                model[i].vertices[j] = Matrix.multiply([transform, models[i].vertices[j]]);
+            }
+        }
     //  * clip in 3D
+    /*    for(let i = 0; i < model.length;++i) {
+            for(let j = 0; j < model.edges.length; ++j) {
+                for(let k = 0; model[i].edges[j].length-1;++k) {
+                    clipLinePerspective([models[i].vertices[edges[j][k]],models[i].vertices[edges[j][k+1]]],-(scene.view.clip[4]/scene.view.clip[5]));
+                }
+
+            }
+        }*/
+    }
+    
+    
+    
+
+    
     //  * project to 2D
     //  * draw line
 }
@@ -123,10 +133,10 @@ function outcodeParallel(vertex) {
     else if (vertex.y > (1.0 + FLOAT_EPSILON)) {
         outcode += TOP;
     }
-    if (vertex.z < (-1.0 - FLOAT_EPSILON)) {
+    if (vertex.x < (-1.0 - FLOAT_EPSILON)) {
         outcode += FAR;
     }
-    else if (vertex.z > (0.0 + FLOAT_EPSILON)) {
+    else if (vertex.x > (0.0 + FLOAT_EPSILON)) {
         outcode += NEAR;
     }
     return outcode;
@@ -147,10 +157,10 @@ function outcodePerspective(vertex, z_min) {
     else if (vertex.y > (-vertex.z + FLOAT_EPSILON)) {
         outcode += TOP;
     }
-    if (vertex.z < (-1.0 - FLOAT_EPSILON)) {
+    if (vertex.x < (-1.0 - FLOAT_EPSILON)) {
         outcode += FAR;
     }
-    else if (vertex.z > (z_min + FLOAT_EPSILON)) {
+    else if (vertex.x > (z_min + FLOAT_EPSILON)) {
         outcode += NEAR;
     }
     return outcode;
@@ -256,3 +266,4 @@ function drawLine(x1, y1, x2, y2) {
     ctx.fillRect(x1 - 2, y1 - 2, 4, 4);
     ctx.fillRect(x2 - 2, y2 - 2, 4, 4);
 }
+
