@@ -86,7 +86,20 @@ function animate(timestamp) {
 // Main drawing code - use information contained in variable `scene`
 function drawScene() {
     console.log(scene);
-    
+    if(scene.type == 'perspective'){
+        let transfrom = mat4x4Perspective(scene.prp, scene.srp, scene.vup, scene.clip);
+
+        for(let i = 0; i<models.length; i++){
+            for(let j = 0; j<models[i].vertices.length; j++){
+                models[i].vertices[j] = Matrix.multiply([transfrom, models[i].vertices[j]]);
+            }
+        }
+
+        
+    }
+    else{
+        let transform = mat4x4Parallel(scene.prp, scene.srp, scene.vup, scene.clip);
+    }
     // TODO: implement drawing here!
     // For each model, for each edge
     //  * transform to canonical view volume
