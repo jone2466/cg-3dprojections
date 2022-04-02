@@ -34,16 +34,16 @@ function init() {
             {
                 type: 'generic',
                 vertices: [
-                    Vector4( 0,  0, -30, 1),
-                    Vector4(20,  0, -30, 1),
-                    Vector4(20, 12, -30, 1),
-                    Vector4(10, 20, -30, 1),
-                    Vector4( 0, 12, -30, 1),
-                    Vector4( 0,  0, -60, 1),
-                    Vector4(20,  0, -60, 1),
-                    Vector4(20, 12, -60, 1),
-                    Vector4(10, 20, -60, 1),
-                    Vector4( 0, 12, -60, 1)
+                    Vector4( 0,  0, -300000, 1),
+                    Vector4(400000,  0, -300000, 1),
+                    Vector4(400000, 240000, -300000, 1),
+                    Vector4(200000, 400000, -300000, 1),
+                    Vector4( 0, 240000, -300000, 1),
+                    Vector4( 0,  0, -600000, 1),
+                    Vector4(400000,  0, -600000, 1),
+                    Vector4(400000, 240000, -600000, 1),
+                    Vector4(200000, 240000, -600000, 1),
+                    Vector4( 0, 240000, -600000, 1)
                 ],
                 edges: [
                     [0, 1, 2, 3, 4, 0],
@@ -85,20 +85,14 @@ function animate(timestamp) {
 
 // Main drawing code - use information contained in variable `scene`
 function drawScene() {
-    console.log(scene);
     var transform;
     let model = [];
     // TODO: implement drawing here!
     // For each model, for each edge
     //  * transform to canonical view volume
-    if(scene.type == 'perspective') {
-        transform = mat4x4Perspective(scene.prp, scene.srp, scene.vup, scene.clip);
-        for(let i = 0; i < scene.models.length; ++i) {
-            model[i] = scene.models[i];
-            for(let j = 0; j < model[i].vertices.length; ++i) {
-                model[i].vertices[j] = Matrix.multiply([transform, models[i].vertices[j]]);
-            }
-        }
+    if(scene.view.type == 'perspective') {
+        transform = mat4x4Perspective(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
+        
     //  * clip in 3D
     /*    for(let i = 0; i < model.length;++i) {
             for(let j = 0; j < model.edges.length; ++j) {
@@ -108,14 +102,41 @@ function drawScene() {
 
             }
         }*/
+
+        //  * project to 2D
+        let finalMatrix = Matrix.multiply([mat4x4MPer(),transform]);
+        
+        
+        for(let i = 0; i < scene.models.length; ++i) {
+            model[i] = scene.models[i];
+            for(let j = 0; j < model[i].vertices.length; ++j) {
+                model[i].vertices[j] = Matrix.multiply([finalMatrix, model[i].vertices[j]]);
+                model[i].vertices[j].x = model[i].vertices[j].x/model[i].vertices[j].w;
+                model[i].vertices[j].y = model[i].vertices[j].y/model[i].vertices[j].w;
+            }
+        }
     }
-    
-    
+    //  * draw line
+    let count = 1;
+    for(let i = 0; i < model.length;++i) {
+        for(let j = 0; j < model[i].edges.length; ++j) {
+            for(let k = 0; k < model[i].edges[j].length-1;++k) {
+                console.log(count);
+                console.log(model[i].vertices[model[i].edges[j][k]].x);
+                console.log(model[i].vertices[model[i].edges[j][k]].y);
+                console.log(model[i].vertices[model[i].edges[j][k+1]].x);
+                console.log(model[i].vertices[model[i].edges[j][k+1]].y);
+                ++count;
+                drawLine(model[i].vertices[model[i].edges[j][k]].x, model[i].vertices[model[i].edges[j][k]].y, 
+                    model[i].vertices[model[i].edges[j][k+1]].x, model[i].vertices[model[i].edges[j][k+1]].y);
+            }
+        }
+    }
     
 
     
-    //  * project to 2D
-    //  * draw line
+    
+    
 }
 
 // Get outcode for vertex (parallel view volume)
