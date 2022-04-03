@@ -34,16 +34,16 @@ function init() {
             {
                 type: 'generic',
                 vertices: [
-                    Vector4( 0,  0, -30, 1),
-                    Vector4(20,  0, -30, 1),
-                    Vector4(20, 12, -30, 1),
-                    Vector4(10, 20, -30, 1),
-                    Vector4( 0, 12, -30, 1),
-                    Vector4( 0,  0, -60, 1),
-                    Vector4(20,  0, -60, 1),
-                    Vector4(20, 12, -60, 1),
-                    Vector4(10, 20, -60, 1),
-                    Vector4( 0, 12, -60, 1)
+                    Vector4( 0,  20, -30, 1),
+                    Vector4(20,  20, -30, 1),
+                    Vector4(20, 29, -30, 1),
+                    Vector4(10, 40, -30, 1),
+                    Vector4( 0, 32, -30, 1),
+                    Vector4( 0,  20, -60, 1),
+                    Vector4(20,  20, -60, 1),
+                    Vector4(20, 32, -60, 1),
+                    Vector4(10, 40, -60, 1),
+                    Vector4( 0, 32, -60, 1)
                 ],
                 edges: [
                     [0, 1, 2, 3, 4, 0],
@@ -86,7 +86,12 @@ function animate(timestamp) {
 // Main drawing code - use information contained in variable `scene`
 function drawScene() {
     var transform;
-    let model = [];
+    let model = [].concat(scene.models);
+    let windowTS = new Matrix(4,4);
+    windowTS.values = [[view.width/2, 0, 0, view.width/2],
+                [0, view.height/2, 0, view.height/2],
+                [0, 0, 1, 0],
+                [0, 0, 0, 1]];
     // TODO: implement drawing here!
     // For each model, for each edge
     //  * transform to canonical view volume
@@ -106,9 +111,9 @@ function drawScene() {
         //  * project to 2D
         let finalMatrix = Matrix.multiply([mat4x4MPer(),transform]);
         
-        
         for(let i = 0; i < scene.models.length; ++i) {
             model[i] = scene.models[i];
+            
             for(let j = 0; j < model[i].vertices.length; ++j) {
                 model[i].vertices[j] = Matrix.multiply([finalMatrix, model[i].vertices[j]]);
                 model[i].vertices[j].x = model[i].vertices[j].x/model[i].vertices[j].w;
@@ -116,16 +121,23 @@ function drawScene() {
             }
         }
     }
+
+    for(let i = 0; i < scene.models.length; ++i) {
+        for(let j = 0; j < model[i].vertices.length; ++j) {
+            model[i].vertices[j] = Matrix.multiply([windowTS, model[i].vertices[j]]);
+            
+        }
+    }
     //  * draw line
     let count = 1;
     for(let i = 0; i < model.length;++i) {
         for(let j = 0; j < model[i].edges.length; ++j) {
             for(let k = 0; k < model[i].edges[j].length-1;++k) {
-                console.log(count);
-                console.log(model[i].vertices[model[i].edges[j][k]].x);
-                console.log(model[i].vertices[model[i].edges[j][k]].y);
-                console.log(model[i].vertices[model[i].edges[j][k+1]].x);
-                console.log(model[i].vertices[model[i].edges[j][k+1]].y);
+                //console.log(count);
+                //console.log(scene.models[i].vertices[scene.models[i].edges[j][k]].x);
+                //console.log(model[i].vertices[model[i].edges[j][k]].y);
+                //console.log(model[i].vertices[model[i].edges[j][k+1]].x);
+                //console.log(model[i].vertices[model[i].edges[j][k+1]].y);
                 ++count;
                 drawLine(model[i].vertices[model[i].edges[j][k]].x, model[i].vertices[model[i].edges[j][k]].y, 
                     model[i].vertices[model[i].edges[j][k+1]].x, model[i].vertices[model[i].edges[j][k+1]].y);
@@ -134,7 +146,7 @@ function drawScene() {
     }
     
 
-    
+    console.log(scene);
     
     
 }

@@ -55,9 +55,11 @@ function mat4x4Perspective(prp, srp, vup, clip) {
     let shear = new Matrix(4,4);
     let scale = new Matrix(4,4);
     let n = prp.subtract(srp);
-    n.normalize();    
+    n.normalize();
+    //console.log(n);   
     let u = vup.cross(n)
     u.normalize();
+    //console.log(u);
     let v = n.cross(u);
     let CW = new Vector3((clip[0] + clip[1])/2, (clip[2] + clip[3])/2, -clip[4]);
     let shx = -CW.x/CW.z;
@@ -92,6 +94,7 @@ function mat4x4Perspective(prp, srp, vup, clip) {
     
     // ...
     let transform = Matrix.multiply([scale, shear, rotate, origin]);
+    
     return transform;
 }
 
