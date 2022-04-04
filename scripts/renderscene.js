@@ -235,6 +235,7 @@ function onKeyDown(event) {
             v.add(Vector3(1,1,1));
             scene.view.srp = scene.view.srp.add(v);
             scene.view.prp = scene.view.prp.add(v);
+            ctx.clearRect(0, 0, view.width, view.height);
             drawScene();
             break;
         case 39: // RIGHT Arrow
@@ -247,6 +248,7 @@ function onKeyDown(event) {
             v.subtract(Vector3(1,1,1));
             scene.view.srp = scene.view.srp.subtract(v);
             scene.view.prp = scene.view.prp.subtract(v);
+            ctx.clearRect(0, 0, view.width, view.height);
             drawScene();
             break;
         case 65: // A key
@@ -257,8 +259,8 @@ function onKeyDown(event) {
             u.subtract(Vector3(1,1,1));
             scene.view.prp = scene.view.prp.add(u);
             scene.view.srp = scene.view.srp.add(u);
-
-            //drawScene();
+            ctx.clearRect(0, 0, view.width, view.height);
+            drawScene();
             break;
         case 68: // D key
             n = scene.view.prp.subtract(scene.view.srp)
@@ -268,7 +270,8 @@ function onKeyDown(event) {
             u.add(Vector3(1,1,1));
             scene.view.prp = scene.view.prp.subtract(u);
             scene.view.srp = scene.view.srp.subtract(u);
-            //drawScene();
+            ctx.clearRect(0, 0, view.width, view.height);
+            drawScene();
             break;
         case 83: // S key
             console.log("S");
@@ -277,7 +280,8 @@ function onKeyDown(event) {
             n.subtract(Vector3(1,1,1));
             scene.view.prp = scene.view.prp.subtract(n);
             scene.view.srp = scene.view.srp.subtract(n);
-            //drawScene();
+            ctx.clearRect(0, 0, view.width, view.height);
+            drawScene();
             break;
         case 87: // W key
             console.log("W");
@@ -286,6 +290,7 @@ function onKeyDown(event) {
             n.add(Vector3(1,1,1));
             scene.view.prp = scene.view.prp.add(n);
             scene.view.srp = scene.view.srp.add(n);
+            ctx.clearRect(0, 0, view.width, view.height);
             drawScene();
             break;
     }
