@@ -4,7 +4,7 @@ function mat4x4Parallel(prp, srp, vup, clip) {
     let rotate = new Matrix(4,4);
     let shear = new Matrix(4,4);
     let scale = new Matrix(4,4);
-    let n = prp.subtract(srp)
+    let n = prp.subtract(srp);
     n.normalize();
     let u = vup.cross(n)
     u.normalize();

@@ -34,16 +34,16 @@ function init() {
             {
                 type: 'generic',
                 vertices: [
-                    Vector4( 0,  20, -30, 1),
-                    Vector4(20,  20, -30, 1),
-                    Vector4(20, 29, -30, 1),
-                    Vector4(10, 40, -30, 1),
-                    Vector4( 0, 32, -30, 1),
-                    Vector4( 0,  20, -60, 1),
-                    Vector4(20,  20, -60, 1),
-                    Vector4(20, 32, -60, 1),
-                    Vector4(10, 40, -60, 1),
-                    Vector4( 0, 32, -60, 1)
+                    Vector4( 0,  0, -30, 1),
+                    Vector4(20,  0, -30, 1),
+                    Vector4(20, 12, -30, 1),
+                    Vector4(10, 20, -30, 1),
+                    Vector4( 0, 12, -30, 1),
+                    Vector4( 0,  0, -60, 1),
+                    Vector4(20,  0, -60, 1),
+                    Vector4(20, 12, -60, 1),
+                    Vector4(10, 20, -60, 1),
+                    Vector4( 0, 12, -60, 1)
                 ],
                 edges: [
                     [0, 1, 2, 3, 4, 0],
@@ -60,7 +60,7 @@ function init() {
     };
 
     // event handler for pressing arrow keys
-    //document.addEventListener('keydown', onKeyDown, false);
+    document.addEventListener('keydown', onKeyDown, false);
     
     // start animation loop
     start_time = performance.now(); // current timestamp in milliseconds
@@ -86,7 +86,7 @@ function animate(timestamp) {
 // Main drawing code - use information contained in variable `scene`
 function drawScene() {
     var transform;
-    let model = [].concat(scene.models);
+    let model = [[]];
     let windowTS = new Matrix(4,4);
     windowTS.values = [[view.width/2, 0, 0, view.width/2],
                 [0, view.height/2, 0, view.height/2],
@@ -95,6 +95,7 @@ function drawScene() {
     // TODO: implement drawing here!
     // For each model, for each edge
     //  * transform to canonical view volume
+    //console.log(scene.view.prp);
     if(scene.view.type == 'perspective') {
         transform = mat4x4Perspective(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
         
@@ -108,45 +109,41 @@ function drawScene() {
             }
         }*/
 
-        //  * project to 2D
-        let finalMatrix = Matrix.multiply([mat4x4MPer(),transform]);
-        
+        let finalMatrix = Matrix.multiply([mat4x4MPer(),transform]);//should be transfrom clip then mper * windowTS * vertice
         for(let i = 0; i < scene.models.length; ++i) {
-            model[i] = scene.models[i];
-            
-            for(let j = 0; j < model[i].vertices.length; ++j) {
-                model[i].vertices[j] = Matrix.multiply([finalMatrix, model[i].vertices[j]]);
-                model[i].vertices[j].x = model[i].vertices[j].x/model[i].vertices[j].w;
-                model[i].vertices[j].y = model[i].vertices[j].y/model[i].vertices[j].w;
+            for(let j = 0; j < scene.models[i].vertices.length; ++j) {
+                model[i].push(Matrix.multiply([finalMatrix, scene.models[i].vertices[j]]));
+            }
+        }
+    }else{
+        transform = mat4x4Parallel(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
+        let finalMatrix = Matrix.multiply([mat4x4MPar(),transform]);
+        for(let i = 0; i < scene.models.length; ++i) {            
+            for(let j = 0; j < scene.models[i].vertices.length; ++j) {
+                model[i].push(Matrix.multiply([finalMatrix, scene.models[i].vertices[j]]));
             }
         }
     }
-
+    //  * project to 2D
     for(let i = 0; i < scene.models.length; ++i) {
-        for(let j = 0; j < model[i].vertices.length; ++j) {
-            model[i].vertices[j] = Matrix.multiply([windowTS, model[i].vertices[j]]);
-            
+        for(let j = 0; j < scene.models[i].vertices.length; ++j) {
+            model[i][j] = Matrix.multiply([windowTS, model[i][j]]);
+            model[i][j].x = model[i][j].x/model[i][j].w;
+            model[i][j].y = model[i][j].y/model[i][j].w;
         }
     }
     //  * draw line
-    let count = 1;
     for(let i = 0; i < model.length;++i) {
-        for(let j = 0; j < model[i].edges.length; ++j) {
-            for(let k = 0; k < model[i].edges[j].length-1;++k) {
-                //console.log(count);
-                //console.log(scene.models[i].vertices[scene.models[i].edges[j][k]].x);
-                //console.log(model[i].vertices[model[i].edges[j][k]].y);
-                //console.log(model[i].vertices[model[i].edges[j][k+1]].x);
-                //console.log(model[i].vertices[model[i].edges[j][k+1]].y);
-                ++count;
-                drawLine(model[i].vertices[model[i].edges[j][k]].x, model[i].vertices[model[i].edges[j][k]].y, 
-                    model[i].vertices[model[i].edges[j][k+1]].x, model[i].vertices[model[i].edges[j][k+1]].y);
+        for(let j = 0; j < scene.models[i].edges.length; ++j) {
+            for(let k = 0; k < scene.models[i].edges[j].length-1;++k) {
+                drawLine(model[i][scene.models[i].edges[j][k]].x, model[i][scene.models[i].edges[j][k]].y, 
+                    model[i][scene.models[i].edges[j][k+1]].x, model[i][scene.models[i].edges[j][k+1]].y);
             }
         }
     }
     
-
-    console.log(scene);
+    //console.log(model);
+    //console.log(scene);
     
     
 }
@@ -230,21 +227,66 @@ function onKeyDown(event) {
     switch (event.keyCode) {
         case 37: // LEFT Arrow
             console.log("left");
+            n = scene.view.prp.subtract(scene.view.srp)
+            n.normalize();
+            u = scene.view.vup.cross(n)
+            u.normalize();
+            v = n.cross(u);
+            v.add(Vector3(1,1,1));
+            scene.view.srp = scene.view.srp.add(v);
+            scene.view.prp = scene.view.prp.add(v);
+            drawScene();
             break;
         case 39: // RIGHT Arrow
             console.log("right");
+            n = scene.view.prp.subtract(scene.view.srp)
+            n.normalize();
+            u = scene.view.vup.cross(n)
+            u.normalize();
+            v = n.cross(u);
+            v.subtract(Vector3(1,1,1));
+            scene.view.srp = scene.view.srp.subtract(v);
+            scene.view.prp = scene.view.prp.subtract(v);
+            drawScene();
             break;
         case 65: // A key
-            console.log("A");
+            n = scene.view.prp.subtract(scene.view.srp)
+            n.normalize();
+            u = scene.view.vup.cross(n)
+            u.normalize();
+            u.subtract(Vector3(1,1,1));
+            scene.view.prp = scene.view.prp.add(u);
+            scene.view.srp = scene.view.srp.add(u);
+
+            //drawScene();
             break;
         case 68: // D key
-            console.log("D");
+            n = scene.view.prp.subtract(scene.view.srp)
+            n.normalize();
+            u = scene.view.vup.cross(n)
+            u.normalize();
+            u.add(Vector3(1,1,1));
+            scene.view.prp = scene.view.prp.subtract(u);
+            scene.view.srp = scene.view.srp.subtract(u);
+            //drawScene();
             break;
         case 83: // S key
             console.log("S");
+            n = scene.view.prp.subtract(scene.view.srp)
+            n.normalize();
+            n.subtract(Vector3(1,1,1));
+            scene.view.prp = scene.view.prp.subtract(n);
+            scene.view.srp = scene.view.srp.subtract(n);
+            //drawScene();
             break;
         case 87: // W key
             console.log("W");
+            n = scene.view.prp.subtract(scene.view.srp)
+            n.normalize();
+            n.add(Vector3(1,1,1));
+            scene.view.prp = scene.view.prp.add(n);
+            scene.view.srp = scene.view.srp.add(n);
+            drawScene();
             break;
     }
 }
