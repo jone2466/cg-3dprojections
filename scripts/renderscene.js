@@ -216,20 +216,79 @@ function clipLinePerspective(line, z_min) {
     let p1 = Vector3(line.pt1.x, line.pt1.y, line.pt1.z);
     let out0 = outcodePerspective(p0, z_min);
     let out1 = outcodePerspective(p1, z_min);
-    
+    let loop = true;
+    var outcode;
+    var p;
     // TODO: implement clipping here!
-
-    if((out0 | out1) == 0){
+    while(loop) {
+        if((out0 | out1) == 0){
         //trivial accept
-    }else if((out0 & out1) != 0){
+            result = [p0,p1];
+            loop = false;
+        }else if((out0 & out1) != 0){
         // trivial deny
-    }else{
+            loop = false;
+        }else{
+            if(out0 != 0) {
+                outcode = out0;
+            } else {
+                outcode = out1;
+            }
 
+            p = calculateIntersectionPersp(line.pt0, line.pt1, outcode);
+
+            if(outcode == out0) {
+                p0 = p;
+                out0 = outcodePerspective(p0, z_min);
+            } else {
+                p1 = p;
+                out1 = outcodePerspective(p1, z_min);
+            }
+        }
     }
     
     return result;
 }
 
+function calculateIntersectionPersp(p0, p1, outcode) {
+    let dx = (p1.x - p0.x);
+    let dy = (p2.y - p0.y);
+    let dz = (p1.z - p0.z); 
+    let newVect = p0;
+    let t;
+
+    if(outcode >= 32) {
+        t = (-p0.x + p0.z)/(dx - dz);
+        newVect.x = (1-t) * p0.x + t * p1.x;
+        outcode -= 32;
+    } else if (outcode >= 16) { 
+        t = (p0.x + p0.z)/(-dx - dz);
+        newVect.x = (1-t) * p0.x + t * p1.x;
+        outcode -= 16;
+    }
+
+    if(outcode >= 8) {
+        t = (-p0.y + p0.z)/(dy-dz);
+        newVect.y = (1-t) * p0.y + t * p1.y;
+        outcode -= 8;
+    } else if(outcode >= 4) {
+        t = (p0.y + p0.z)/(-dy-dz);
+        newVect.y = (1-t) * p0.y + t * p1.y;
+        outcode -= 4;
+    }
+
+    if(outcode >= 2) {
+        t = (-p0.z - 1)/dz;
+        newVect.z = (1-t) * p0.z + t * p1.z;
+        outcode -= 2;
+    } else if (outcode >= 1) {
+        t = (p0.z - -(scene.view.clip[4]/scene.view.clip[5]))/-dz;
+        newVect.z = (1-t) * p0.z + t * p1.z;
+        outcode -= 1;
+    }
+
+    return newVect;
+}
 // Called when user presses a key on the keyboard down 
 function onKeyDown(event) {
     switch (event.keyCode) {
