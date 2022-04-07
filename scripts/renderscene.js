@@ -100,7 +100,7 @@ function drawScene() {
         transform = mat4x4Perspective(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
         
     //  * clip in 3D
-    /*    for(let i = 0; i < model.length;++i) {
+        /*for(let i = 0; i < model.length;++i) {
             for(let j = 0; j < model.edges.length; ++j) {
                 for(let k = 0; model[i].edges[j].length-1;++k) {
                     clipLinePerspective([models[i].vertices[edges[j][k]],models[i].vertices[edges[j][k+1]]],-(scene.view.clip[4]/scene.view.clip[5]));
@@ -218,6 +218,14 @@ function clipLinePerspective(line, z_min) {
     let out1 = outcodePerspective(p1, z_min);
     
     // TODO: implement clipping here!
+
+    if((out0 | out1) == 0){
+        //trivial accept
+    }else if((out0 & out1) != 0){
+        // trivial deny
+    }else{
+
+    }
     
     return result;
 }
@@ -232,9 +240,7 @@ function onKeyDown(event) {
             u = scene.view.vup.cross(n)
             u.normalize();
             v = n.cross(u);
-            v.add(Vector3(1,1,1));
             scene.view.srp = scene.view.srp.add(v);
-            scene.view.prp = scene.view.prp.add(v);
             ctx.clearRect(0, 0, view.width, view.height);
             drawScene();
             break;
@@ -245,9 +251,7 @@ function onKeyDown(event) {
             u = scene.view.vup.cross(n)
             u.normalize();
             v = n.cross(u);
-            v.subtract(Vector3(1,1,1));
             scene.view.srp = scene.view.srp.subtract(v);
-            scene.view.prp = scene.view.prp.subtract(v);
             ctx.clearRect(0, 0, view.width, view.height);
             drawScene();
             break;
@@ -256,7 +260,6 @@ function onKeyDown(event) {
             n.normalize();
             u = scene.view.vup.cross(n)
             u.normalize();
-            u.subtract(Vector3(1,1,1));
             scene.view.prp = scene.view.prp.add(u);
             scene.view.srp = scene.view.srp.add(u);
             ctx.clearRect(0, 0, view.width, view.height);
@@ -267,7 +270,6 @@ function onKeyDown(event) {
             n.normalize();
             u = scene.view.vup.cross(n)
             u.normalize();
-            u.add(Vector3(1,1,1));
             scene.view.prp = scene.view.prp.subtract(u);
             scene.view.srp = scene.view.srp.subtract(u);
             ctx.clearRect(0, 0, view.width, view.height);
@@ -277,9 +279,8 @@ function onKeyDown(event) {
             console.log("S");
             n = scene.view.prp.subtract(scene.view.srp)
             n.normalize();
-            n.subtract(Vector3(1,1,1));
-            scene.view.prp = scene.view.prp.subtract(n);
-            scene.view.srp = scene.view.srp.subtract(n);
+            scene.view.prp = scene.view.prp.add(n);
+            scene.view.srp = scene.view.srp.add(n);
             ctx.clearRect(0, 0, view.width, view.height);
             drawScene();
             break;
@@ -287,9 +288,8 @@ function onKeyDown(event) {
             console.log("W");
             n = scene.view.prp.subtract(scene.view.srp)
             n.normalize();
-            n.add(Vector3(1,1,1));
-            scene.view.prp = scene.view.prp.add(n);
-            scene.view.srp = scene.view.srp.add(n);
+            scene.view.prp = scene.view.prp.subtract(n);
+            scene.view.srp = scene.view.srp.subtract(n);
             ctx.clearRect(0, 0, view.width, view.height);
             drawScene();
             break;
