@@ -10,7 +10,7 @@ function mat4x4Parallel(prp, srp, vup, clip) {
     u.normalize();
     let v = n.cross(u);
     let CW = new Vector3((clip[0] + clip[1])/2, (clip[2] + clip[3])/2, -clip[4]);
-    let DOP = CW.subtract(prp);
+    let DOP = CW;
     let shx = -DOP.x/DOP.z;
     let shy = -DOP.y/DOP.z;
     let sx = 2 / (clip[1]-clip[0]);
