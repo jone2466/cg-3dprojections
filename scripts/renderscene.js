@@ -111,7 +111,7 @@ function drawScene() {
                     };
                     //console.log(j,k);
                     //console.log(j,k+1);
-                    let clippedLine = clipLinePerspective(line,-(scene.view.clip[4]/scene.view.clip[5]))
+                    let clippedLine = clipLinePerspective(line,-(scene.view.clip[4]/scene.view.clip[5]));
                     if(clippedLine != null){
                         model[i].push(clippedLine);
                     }
@@ -143,15 +143,15 @@ function drawScene() {
                     };
                     //console.log(j,k); setting to cononical view
                     //console.log(j,k+1);
-                    let clippedLine = clipLineParallel(line,-(scene.view.clip[4]/scene.view.clip[5]));
+                    let clippedLine = clipLineParallel(line);
                     if(clippedLine != null){
                         model[i].push(clippedLine);
                     }
                 }
             }
             for(let j = 0; j < model[i].length; ++j) {
-                let p02d = Matrix.multiply([windowTS,mat4x4MPer(), model[i][j][0]]);
-                let p12d = Matrix.multiply([windowTS,mat4x4MPer(), model[i][j][1]]);
+                let p02d = Matrix.multiply([windowTS,mat4x4MPar(), model[i][j][0]]);
+                let p12d = Matrix.multiply([windowTS,mat4x4MPar(), model[i][j][1]]);
                 p02d.x = p02d.x/p02d.w;
                 p02d.y = p02d.y/p02d.w;
                 p12d.x = p12d.x/p12d.w;
@@ -223,12 +223,81 @@ function clipLineParallel(line) {
     let p1 = Vector4(line.pt1.x, line.pt1.y, line.pt1.z,1);
     let out0 = outcodeParallel(p0);
     let out1 = outcodeParallel(p1);
-    
+    let loop = true;
+    var outcode;
+    var p;
     // TODO: implement clipping here!
+    while(loop) {
+        if((out0 | out1) == 0){
+        //trivial accept
+            result = [p0,p1];
+            loop = false;
+        }else if((out0 & out1) != 0){
+        // trivial deny
+            loop = false;
+        }else{
+            if(out0 != 0) {
+                outcode = out0;
+            } else {
+                outcode = out1;
+            }
+
+            p = calculateIntersectionPara(line.pt0, line.pt1, outcode);
+            //console.log("clipped",p);
+            if(outcode == out0) {
+                p0 = p;
+                out0 = outcodeParallel(p0);
+            } else {
+                p1 = p;
+                out1 = outcodeParallel(p1);
+            }
+        }
+    }
     
-    return line;
+    return result;
 }
 
+function calculateIntersectionPara(p0, p1, outcode) {
+    let dx = (p1.x - p0.x);
+    let dy = (p1.y - p0.y);
+    let dz = (p1.z - p0.z); 
+    //let newVect =new Vector3(p0.x,p0.y,p0.z);
+    let t;
+
+    if(outcode >= 32) {
+        t = (-p0.x)/((-p0.x) + p1.x);
+        //newVect.x = (1-t) * p0.x + t * p1.x;
+        outcode -= 32;
+    } else if (outcode >= 16) { 
+        t = (-p0.x)/((-p0.x) + p1.x);
+        //newVect.x = (1-t) * p0.x + t * p1.x;
+        outcode -= 16;
+    }
+
+    if(outcode >= 8) {
+        t = (-p0.y)/((-p0.y) + p1.y);
+        //newVect.y = (1-t) * p0.y + t * p1.y;
+        outcode -= 8;
+    } else if(outcode >= 4) {
+        t = (-p0.y)/((-p0.y) + p1.y);
+        //newVect.y = (1-t) * p0.y + t * p1.y;
+        outcode -= 4;
+    }
+
+    if(outcode >= 2) {
+        t = (-p0.z - 1)/dz;
+        //newVect.z = (1-t) * p0.z + t * p1.z;
+        outcode -= 2;
+    } else if (outcode >= 1) {
+        t = (p0.z - -(scene.view.clip[4]/scene.view.clip[5]))/-dz;
+        //newVect.z = (1-t) * p0.z + t * p1.z;
+        outcode -= 1;
+    }
+
+    let newVect = Vector4((1-t) * p0.x + t * p1.x, (1-t) * p0.y + t * p1.y, (1-t) * p0.z + t * p1.z,1);
+
+    return newVect;
+}
 // Clip line - should either return a new line (with two endpoints inside view volume) or null (if line is completely outside view volume)
 function clipLinePerspective(line, z_min) {
     let result = null;
