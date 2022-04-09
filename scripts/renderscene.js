@@ -24,7 +24,7 @@ function init() {
     // initial scene... feel free to change this
     scene = {
         view: {
-            type: 'parallel',
+            type: 'perspective',
             prp: Vector3(44, 20, -16),
             srp: Vector3(20, 20, -40),
             vup: Vector3(0, 1, 0),
@@ -141,12 +141,13 @@ function drawScene() {
                         pt0: p0,
                         pt1: p1
                     };
-                    //console.log(j,k); setting to cononical view
+                    //console.log(j,k); //setting to cononical view
                     //console.log(j,k+1);
                     let clippedLine = clipLineParallel(line);
                     if(clippedLine != null){
                         model[i].push(clippedLine);
                     }
+                    //console.log(model[i]);
                 }
             }
             for(let j = 0; j < model[i].length; ++j) {
@@ -258,39 +259,31 @@ function clipLineParallel(line) {
 }
 
 function calculateIntersectionPara(p0, p1, outcode) {
-    let dx = (p1.x - p0.x);
-    let dy = (p1.y - p0.y);
-    let dz = (p1.z - p0.z); 
-    //let newVect =new Vector3(p0.x,p0.y,p0.z);
-    let t;
 
+    let t;
+    console.log("p1: ",p0.x,p0.y,p0.z);
+    console.log("p2: ",p1.x,p1.y,p1.z);
     if(outcode >= 32) {
-        t = (-p0.x)/((-p0.x) + p1.x);
-        //newVect.x = (1-t) * p0.x + t * p1.x;
+        t = (-1-p0.x)/((p1.x) - p0.x);
         outcode -= 32;
     } else if (outcode >= 16) { 
-        t = (-p0.x)/((-p0.x) + p1.x);
-        //newVect.x = (1-t) * p0.x + t * p1.x;
+        t = (1-p0.x)/((p1.x) - p0.x);
         outcode -= 16;
     }
 
     if(outcode >= 8) {
-        t = (-p0.y)/((-p0.y) + p1.y);
-        //newVect.y = (1-t) * p0.y + t * p1.y;
+        t = (-1-p0.y)/((p1.y) - p0.y);
         outcode -= 8;
     } else if(outcode >= 4) {
-        t = (-p0.y)/((-p0.y) + p1.y);
-        //newVect.y = (1-t) * p0.y + t * p1.y;
+        t = (1-p0.y)/((p1.y) - p0.y);
         outcode -= 4;
     }
 
     if(outcode >= 2) {
-        t = (-p0.z - 1)/dz;
-        //newVect.z = (1-t) * p0.z + t * p1.z;
+        t = (-1-p0.z)/((p1.z) - p0.z);
         outcode -= 2;
     } else if (outcode >= 1) {
-        t = (p0.z - -(scene.view.clip[4]/scene.view.clip[5]))/-dz;
-        //newVect.z = (1-t) * p0.z + t * p1.z;
+        t = (1-p0.z)/((p1.z) - p0.z);
         outcode -= 1;
     }
 
@@ -311,7 +304,7 @@ function clipLinePerspective(line, z_min) {
     // console.log(z_min);
     // console.log(p0,p1);
     // console.log(out0,out1);
-    //console.log(p0,p1);
+    // console.log(p0,p1);
     // TODO: implement clipping here!
     while(loop) {
         if((out0 | out1) == 0){
@@ -347,36 +340,29 @@ function calculateIntersectionPersp(p0, p1, outcode) {
     let dx = (p1.x - p0.x);
     let dy = (p1.y - p0.y);
     let dz = (p1.z - p0.z); 
-    //let newVect =new Vector3(p0.x,p0.y,p0.z);
     let t;
 
     if(outcode >= 32) {
         t = (-p0.x + p0.z)/(dx - dz);
-        //newVect.x = (1-t) * p0.x + t * p1.x;
         outcode -= 32;
     } else if (outcode >= 16) { 
         t = (p0.x + p0.z)/(-dx - dz);
-        //newVect.x = (1-t) * p0.x + t * p1.x;
         outcode -= 16;
     }
 
     if(outcode >= 8) {
         t = (-p0.y + p0.z)/(dy-dz);
-        //newVect.y = (1-t) * p0.y + t * p1.y;
         outcode -= 8;
     } else if(outcode >= 4) {
         t = (p0.y + p0.z)/(-dy-dz);
-        //newVect.y = (1-t) * p0.y + t * p1.y;
         outcode -= 4;
     }
 
     if(outcode >= 2) {
         t = (-p0.z - 1)/dz;
-        //newVect.z = (1-t) * p0.z + t * p1.z;
         outcode -= 2;
     } else if (outcode >= 1) {
         t = (p0.z - -(scene.view.clip[4]/scene.view.clip[5]))/-dz;
-        //newVect.z = (1-t) * p0.z + t * p1.z;
         outcode -= 1;
     }
 
