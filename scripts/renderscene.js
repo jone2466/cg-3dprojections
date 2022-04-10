@@ -24,7 +24,7 @@ function init() {
     // initial scene... feel free to change this
     scene = {
         view: {
-            type: 'perspective',
+            type: 'parallel',
             prp: Vector3(44, 20, -16),
             srp: Vector3(20, 20, -40),
             vup: Vector3(0, 1, 0),
@@ -55,6 +55,14 @@ function init() {
                     [4, 9]
                 ],
                 matrix: new Matrix(4, 4)
+            },
+            {
+                type: "cube",
+                center: Vector4(4, 4, -10, 1),
+                width: 8,
+                height: 8,
+                depth: 8,
+                matrix: new Matrix(4,4)
             }
         ]
     };
@@ -86,17 +94,43 @@ function animate(timestamp) {
 // Main drawing code - use information contained in variable `scene`
 function drawScene() {
     var transform;
-    let model = [[]];
+    let model = [];
     let windowTS = new Matrix(4,4);
     windowTS.values = [[view.width/2, 0, 0, view.width/2],
-                [0, view.height/2, 0, view.height/2],
-                [0, 0, 1, 0],
-                [0, 0, 0, 1]];
+                       [0, view.height/2, 0, view.height/2],
+                       [0, 0, 1, 0],
+                       [0, 0, 0, 1]];
     // TODO: implement drawing here!
     // For each model, for each edge
     //  * transform to canonical view volume
     //console.log(scene.view.prp);
     for(let i = 0; i< scene.models.length; i++){
+        console.log(scene.models[i].type);
+        model.push([]);
+        if(scene.models[i].type == 'cube') {
+            halfHeight = scene.models[i].height/2;
+            halfWidth = scene.models[i].width/2;
+            halfDepth = scene.models[i].depth/2;
+            modelCenter = scene.models[i].center;
+            scene.models[i].vertices = []
+            scene.models[i].vertices.push(Vector4(modelCenter.x - halfWidth, modelCenter.y + halfHeight,modelCenter.z - halfDepth,modelCenter.w)); // front, top, left 0
+            scene.models[i].vertices.push(Vector4(modelCenter.x + halfWidth, modelCenter.y + halfHeight,modelCenter.z - halfDepth,modelCenter.w)); // front, top, right 1
+            scene.models[i].vertices.push(Vector4(modelCenter.x + halfWidth, modelCenter.y - halfHeight,modelCenter.z - halfDepth,modelCenter.w)); // front, bottom, right 2
+            scene.models[i].vertices.push(Vector4(modelCenter.x - halfWidth, modelCenter.y - halfHeight,modelCenter.z - halfDepth,modelCenter.w)); // front, bottom, left 3
+            scene.models[i].vertices.push(Vector4(modelCenter.x - halfWidth, modelCenter.y + halfHeight,modelCenter.z + halfDepth,modelCenter.w)); // back, top, left 4
+            scene.models[i].vertices.push(Vector4(modelCenter.x + halfWidth, modelCenter.y + halfHeight,modelCenter.z + halfDepth,modelCenter.w)); // back, top, right 5
+            scene.models[i].vertices.push(Vector4(modelCenter.x + halfWidth, modelCenter.y - halfHeight,modelCenter.z + halfDepth,modelCenter.w)); // back, bottom, right 6
+            scene.models[i].vertices.push(Vector4(modelCenter.x - halfWidth, modelCenter.y - halfHeight,modelCenter.z + halfDepth,modelCenter.w)); // back, bottom, left 7 
+            
+            scene.models[i].edges = [];
+            scene.models[i].edges[0] = [0, 1, 2, 3, 0];
+            scene.models[i].edges[1] = [4, 5, 6, 7, 4]; 
+            scene.models[i].edges[2] = [0,4];
+            scene.models[i].edges[3] = [1,5];
+            scene.models[i].edges[4] = [2,6];
+            scene.models[i].edges[5] = [3,7];
+        } 
+        //console.log(scene.models[i].edges);
         if(scene.view.type == 'perspective') {
             transform = mat4x4Perspective(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
             
@@ -109,10 +143,12 @@ function drawScene() {
                         pt0: p0,
                         pt1: p1
                     };
+                
                     //console.log(j,k);
                     //console.log(j,k+1);
                     let clippedLine = clipLinePerspective(line,-(scene.view.clip[4]/scene.view.clip[5]));
                     if(clippedLine != null){
+                        console.log(model[i]);
                         model[i].push(clippedLine);
                     }
                 }
@@ -129,10 +165,11 @@ function drawScene() {
                     p12d.y = p12d.y/p12d.w;
                     drawLine(p02d.x, p02d.y, p12d.x, p12d.y);
             }
+            console.log(3);
             
         }else{
             transform = mat4x4Parallel(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
-
+            console.log(scene.models[i]);
             for(let j = 0; j < scene.models[i].edges.length; ++j) {
                 for(let k = 0; k < scene.models[i].edges[j].length-1;++k) {
                     let p0 = Matrix.multiply([transform, scene.models[i].vertices[scene.models[i].edges[j][k]]]);
@@ -145,6 +182,7 @@ function drawScene() {
                     //console.log(j,k+1);
                     let clippedLine = clipLineParallel(line);
                     if(clippedLine != null){
+                        
                         model[i].push(clippedLine);
                     }
                     //console.log(model[i]);
@@ -159,12 +197,15 @@ function drawScene() {
                 p12d.y = p12d.y/p12d.w;
                 drawLine(p02d.x, p02d.y, p12d.x, p12d.y);
         }
+
+        
             
         }
         //  * project to 2
         
         //console.log(model);
         //console.log(scene);
+        
     }    
     
 }
@@ -261,8 +302,8 @@ function clipLineParallel(line) {
 function calculateIntersectionPara(p0, p1, outcode) {
 
     let t;
-    console.log("p1: ",p0.x,p0.y,p0.z);
-    console.log("p2: ",p1.x,p1.y,p1.z);
+    //console.log("p1: ",p0.x,p0.y,p0.z);
+    //console.log("p2: ",p1.x,p1.y,p1.z);
     if(outcode >= 32) {
         t = (-1-p0.x)/((p1.x) - p0.x);
         outcode -= 32;
@@ -283,7 +324,7 @@ function calculateIntersectionPara(p0, p1, outcode) {
         t = (-1-p0.z)/((p1.z) - p0.z);
         outcode -= 2;
     } else if (outcode >= 1) {
-        t = (1-p0.z)/((p1.z) - p0.z);
+        t = (p0.z)/((p1.z) - p0.z);
         outcode -= 1;
     }
 
