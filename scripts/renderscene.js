@@ -57,11 +57,11 @@ function init() {
                 matrix: new Matrix(4, 4)
             },
             {
-                type: "cone",
+                type: "sphere",
                 center: Vector4(12, 10, -49, 1),
-                radius: 1.5,
-                height: 5,
-                sides: 12,
+                radius: 12,
+                stacks: 10,
+                slices: 10,
                 matrix: new Matrix(4,4)
             }
         ]
@@ -184,6 +184,82 @@ function drawScene() {
                 }
             }
         } else if (scene.models[i].type == 'sphere') {
+            let cos = Math.cos(0.0);
+            let sin = Math.sin(0.0);
+            let sides = 20;
+            let center = scene.models[i].center;
+            let depth = 0;
+            let depth2 = 0;
+            let radius = scene.models[i].radius;
+            let radius2 = scene.models[i].radius;
+            let initialr = scene.models[i].radius
+            center = scene.models[i].center;
+            scene.models[i].edges = [];
+            scene.models[i].edges[0] = [];
+            scene.models[i].vertices = [];
+            let placeholder = 0;
+            let newEdge = 0;
+            if(scene.models[i].slices % 2 == 0) {
+                depth = depth + initialr/scene.models[i].slices;
+            }
+            if(scene.models[i].stacks % 2 == 0) {
+                depth2 = depth2 + initialr/scene.models[i].slices;
+            }
+            for(let j = 0; j < scene.models[i].slices/2; j++) {
+                scene.models[i].vertices.push(Vector4(center.x + radius * cos, center.y + radius * sin, center.z + depth, 1));
+                scene.models[i].vertices.push(Vector4(center.x + radius * cos, center.y + radius * sin, center.z - depth, 1));
+                for(let k = 0; k < sides; ++k) {
+                    cos = Math.cos(((k+1) * 2 * Math.PI)/sides);
+                    sin = Math.sin(((k+1) * 2 * Math.PI)/sides);
+                    scene.models[i].vertices.push(Vector4(center.x + radius * cos, center.y + radius * sin, center.z + depth, 1));
+                    scene.models[i].vertices.push(Vector4(center.x + radius * cos, center.y + radius * sin, center.z - depth, 1));
+                }
+                radius = radius * .9;
+                depth = depth + initialr/scene.models[i].slices
+
+                
+                scene.models[i].edges[newEdge] = [];
+                scene.models[i].edges[newEdge+1] = [];
+                for(let k = placeholder; k < scene.models[i].vertices.length; ++k) {
+                    if(k%2 == 0) {
+                        scene.models[i].edges[newEdge+1].push(k);
+                    } else if (k % 2 != 0) {
+                        scene.models[i].edges[newEdge].push(k);
+                    }
+                        
+                }
+                
+                newEdge += 2;
+                placeholder = scene.models[i].vertices.length;
+            }
+
+            
+            for(let j = 0; j < scene.models[i].stacks/2; j++) {
+                scene.models[i].vertices.push(Vector4(center.x + radius2 * cos, center.y + depth2, center.z + radius2 * sin, 1));
+                scene.models[i].vertices.push(Vector4(center.x + radius2 * cos, center.y - depth2, center.z + radius2 * sin, 1));
+                for(let k = 0; k < sides; ++k) {
+                    cos = Math.cos(((k+1) * 2 * Math.PI)/sides);
+                    sin = Math.sin(((k+1) * 2 * Math.PI)/sides);
+                    scene.models[i].vertices.push(Vector4(center.x + radius2 * cos, center.y + depth2, center.z + radius2 * sin, 1));
+                    scene.models[i].vertices.push(Vector4(center.x + radius2 * cos, center.y - depth2, center.z + radius2 * sin, 1));
+                }
+                //radius2 = radius - (initialr / (j + 1));
+                depth2 = depth2 + initialr/scene.models[i].stacks
+                scene.models[i].edges[newEdge] = [];
+                scene.models[i].edges[newEdge+1] = [];
+                for(let k = placeholder; k < scene.models[i].vertices.length; ++k) {
+                    if(k%2 == 0) {
+                        scene.models[i].edges[newEdge+1].push(k);
+                    } else if (k % 2 != 0) {
+                        scene.models[i].edges[newEdge].push(k);
+                    }
+                        
+                }
+            }
+
+            console.log(radius);
+            console.log(radius2);
+            console.log(initialr);
 
         }
         //console.log(scene.models[i].edges);
@@ -204,7 +280,7 @@ function drawScene() {
                     //console.log(j,k+1);
                     let clippedLine = clipLinePerspective(line,-(scene.view.clip[4]/scene.view.clip[5]));
                     if(clippedLine != null){
-                        console.log(model[i]);
+                        //console.log(model[i]);
                         model[i].push(clippedLine);
                     }
                 }
@@ -221,7 +297,6 @@ function drawScene() {
                     p12d.y = p12d.y/p12d.w;
                     drawLine(p02d.x, p02d.y, p12d.x, p12d.y);
             }
-            console.log(3);
             
         }else{
             transform = mat4x4Parallel(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
