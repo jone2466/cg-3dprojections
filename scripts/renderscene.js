@@ -24,7 +24,7 @@ function init() {
     // initial scene... feel free to change this
     scene = {
         view: {
-            type: 'parallel',
+            type: 'perspective',
             prp: Vector3(44, 20, -16),
             srp: Vector3(20, 20, -40),
             vup: Vector3(0, 1, 0),
@@ -57,11 +57,11 @@ function init() {
                 matrix: new Matrix(4, 4)
             },
             {
-                type: "cube",
-                center: Vector4(4, 4, -10, 1),
-                width: 8,
-                height: 8,
-                depth: 8,
+                type: "cone",
+                center: Vector4(12, 10, -49, 1),
+                radius: 1.5,
+                height: 5,
+                sides: 12,
                 matrix: new Matrix(4,4)
             }
         ]
@@ -112,7 +112,7 @@ function drawScene() {
             halfWidth = scene.models[i].width/2;
             halfDepth = scene.models[i].depth/2;
             modelCenter = scene.models[i].center;
-            scene.models[i].vertices = []
+            scene.models[i].vertices = [];
             scene.models[i].vertices.push(Vector4(modelCenter.x - halfWidth, modelCenter.y + halfHeight,modelCenter.z - halfDepth,modelCenter.w)); // front, top, left 0
             scene.models[i].vertices.push(Vector4(modelCenter.x + halfWidth, modelCenter.y + halfHeight,modelCenter.z - halfDepth,modelCenter.w)); // front, top, right 1
             scene.models[i].vertices.push(Vector4(modelCenter.x + halfWidth, modelCenter.y - halfHeight,modelCenter.z - halfDepth,modelCenter.w)); // front, bottom, right 2
@@ -121,7 +121,6 @@ function drawScene() {
             scene.models[i].vertices.push(Vector4(modelCenter.x + halfWidth, modelCenter.y + halfHeight,modelCenter.z + halfDepth,modelCenter.w)); // back, top, right 5
             scene.models[i].vertices.push(Vector4(modelCenter.x + halfWidth, modelCenter.y - halfHeight,modelCenter.z + halfDepth,modelCenter.w)); // back, bottom, right 6
             scene.models[i].vertices.push(Vector4(modelCenter.x - halfWidth, modelCenter.y - halfHeight,modelCenter.z + halfDepth,modelCenter.w)); // back, bottom, left 7 
-            
             scene.models[i].edges = [];
             scene.models[i].edges[0] = [0, 1, 2, 3, 0];
             scene.models[i].edges[1] = [4, 5, 6, 7, 4]; 
@@ -129,7 +128,64 @@ function drawScene() {
             scene.models[i].edges[3] = [1,5];
             scene.models[i].edges[4] = [2,6];
             scene.models[i].edges[5] = [3,7];
-        } 
+        } else if(scene.models[i].type == 'cone') {
+            let cos = Math.cos(0.0);
+            let sin = Math.sin(0.0);
+            center = scene.models[i].center;
+            radius = scene.models[i].radius;
+            point = scene.models[i].height/2 + center.z;
+            fz = center.z - scene.models[i].height/2;
+            scene.models[i].vertices = [];
+            scene.models[i].edges = [];
+            scene.models[i].edges[0] = [];
+            scene.models[i].vertices.push(Vector4(center.x, center.y, point,1));
+            scene.models[i].vertices.push(Vector4(center.x + radius * cos, center.y + radius * sin, fz, 1));
+            for(let j = 0; j < scene.models[i].sides; j++) {
+                cos = Math.cos(((j+1) * 2 * Math.PI)/scene.models[i].sides);
+                sin = Math.sin(((j+1) * 2 * Math.PI)/scene.models[i].sides);
+                scene.models[i].vertices.push(Vector4(center.x + radius * cos, center.y + radius * sin, fz, 1));
+            }
+            let newEdge = 1;
+            for(let j = 1; j < scene.models[i].vertices.length; ++j) {
+                scene.models[i].edges[0].push(j);
+                scene.models[i].edges[newEdge] = [0,j];
+                newEdge++;
+            }
+
+        } else if(scene.models[i].type == 'cylinder') {
+            let cos = Math.cos(0.0);
+            let sin = Math.sin(0.0);
+            center = scene.models[i].center;
+            radius = scene.models[i].radius;
+            fz = center.z - scene.models[i].height/2;
+            bz = center.z + scene.models[i].height/2;
+            scene.models[i].vertices = [];
+            scene.models[i].edges = [];
+            scene.models[i].edges[0] = [];
+            scene.models[i].edges[1] = [];
+            scene.models[i].vertices.push(Vector4(center.x + radius * cos, center.y + radius * sin, fz, 1));
+            scene.models[i].vertices.push(Vector4(center.x + radius * cos, center.y + radius * sin, bz, 1));
+                
+            for(let j = 0; j < scene.models[i].sides; j++) {
+                cos = Math.cos(((j+1) * 2 * Math.PI)/scene.models[i].sides);
+                sin = Math.sin(((j+1) * 2 * Math.PI)/scene.models[i].sides);
+                scene.models[i].vertices.push(Vector4(center.x + radius * cos, center.y + radius * sin, fz, 1));
+                scene.models[i].vertices.push(Vector4(center.x + radius * cos, center.y + radius * sin, bz, 1));
+            }
+
+            let newEdge = 2;
+            for(let j = 0; j < scene.models[i].vertices.length; ++j) {
+                if(j%2 == 0) {
+                    scene.models[i].edges[1].push(j);
+                    scene.models[i].edges[newEdge] = [j, j+1];
+                    newEdge++;
+                } else if (j % 2 != 0) {
+                    scene.models[i].edges[0].push(j);
+                }
+            }
+        } else if (scene.models[i].type == 'sphere') {
+
+        }
         //console.log(scene.models[i].edges);
         if(scene.view.type == 'perspective') {
             transform = mat4x4Perspective(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
