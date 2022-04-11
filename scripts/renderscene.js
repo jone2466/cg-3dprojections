@@ -32,7 +32,7 @@ function init() {
             clip: [-19, 5, -10, 8, 12, 100]
         },
         models: [
-            {
+            /*{
                 type: 'generic',
                 vertices: [
                     Vector4( 0,  0, -30, 1),
@@ -56,7 +56,7 @@ function init() {
                     [4, 9]
                 ],
                 matrix: new Matrix(4, 4)
-            },
+            },*/
             {
                 type: "sphere",
                 center: Vector4(12, 10, -49, 1),
@@ -84,22 +84,22 @@ function animate(timestamp) {
     // step 2: transform models based on time
     //need to put this in so that we can change rate of spin based on model
     // also need to check which axis to spin on  
-        let angle = time*0.001*.00001*Math.PI*2;
+        let angle = time*0.001*1*Math.PI*2;
         for(let i = 0; i< scene.models.length; i++){
-            console.log(scene.models[1].vertices);
+            //console.log(scene.models[1].vertices);
                 for(let j = 0; j < scene.models[i].vertices.length; j++){
                     let subtract = new Matrix(4,4);
                     let rotate = new Matrix(4,4);
                     let addBack = new Matrix(4,4);
-                    //let tempX = scene.models[i].vertices[j].x;
-                    let tempY = scene.models[i].vertices[j].y;
-                    let tempZ = scene.models[i].vertices[j].z;
+                    let tempX = scene.models[i].center.x;
+                    let tempY = scene.models[i].center.y;
+                    let tempZ = scene.models[i].center.z;
                     // console.log(tempY);
                     // console.log(tempZ);
-                    mat4x4Translate(subtract, 0, -tempY, -tempZ);
+                    mat4x4Translate(subtract, -tempX, -tempY, -tempZ);
                     mat4x4RotateX(rotate,angle);
-                    mat4x4Translate(addBack, 0, tempY, tempZ);
-                    scene.models[i].vertices[j] = Matrix.multiply([subtract,rotate,addBack,scene.models[i].vertices[j]]);
+                    mat4x4Translate(addBack, tempX, tempY, tempZ);
+                    scene.models[i].matrix = Matrix.multiply([addBack,rotate,subtract]);
                     //console.log(scene.models[i].vertices[0]);
                 }
                 ctx.clearRect(0, 0, view.width, view.height);
@@ -298,8 +298,8 @@ function drawScene() {
         //  * clip in 3D
             for(let j = 0; j < scene.models[i].edges.length; ++j) {
                 for(let k = 0; k < scene.models[i].edges[j].length-1;++k) {
-                    let p0 = Matrix.multiply([transform, scene.models[i].vertices[scene.models[i].edges[j][k]]]);
-                    let p1 = Matrix.multiply([transform, scene.models[i].vertices[scene.models[i].edges[j][k+1]]]);
+                    let p0 = Matrix.multiply([transform, scene.models[i].matrix, scene.models[i].vertices[scene.models[i].edges[j][k]]]);
+                    let p1 = Matrix.multiply([transform, scene.models[i].matrix, scene.models[i].vertices[scene.models[i].edges[j][k+1]]]);
                     let line = {
                         pt0: p0,
                         pt1: p1
@@ -485,7 +485,7 @@ function calculateIntersectionPara(p0, p1, outcode) {
         t = (-1-p0.z)/((p1.z) - p0.z);
         outcode -= 2;
     } else if (outcode >= 1) {
-        t = (p0.z)/((p1.z) - p0.z);
+        t = (-p0.z)/((p1.z) - p0.z);
         outcode -= 1;
     }
 
