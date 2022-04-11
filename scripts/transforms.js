@@ -155,7 +155,7 @@ function mat4x4RotateX(mat4x4, theta) {
     // mat4x4.values = ...;
     mat4x4.values = [[1, 0, 0, 0],
                      [0, Math.cos(theta), -(Math.sin(theta)), 0],
-                     [0, sin(theta), Math.cos(theta), 0],
+                     [0, Math.sin(theta), Math.cos(theta), 0],
                      [0, 0, 0, 1]];
 }
 

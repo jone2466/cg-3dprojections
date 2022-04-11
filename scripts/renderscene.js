@@ -2,6 +2,7 @@ let view;
 let ctx;
 let scene;
 let start_time;
+let check = 0;
 
 const LEFT =   32; // binary 100000
 const RIGHT =  16; // binary 010000
@@ -66,7 +67,7 @@ function init() {
             }
         ]
     };
-
+    computeVertAndEdge();
     // event handler for pressing arrow keys
     document.addEventListener('keydown', onKeyDown, false);
     
@@ -79,34 +80,41 @@ function init() {
 function animate(timestamp) {
     // step 1: calculate time (time since start)
     let time = timestamp - start_time;
-    
+    start_time = time;
     // step 2: transform models based on time
-    // TODO: implement this!
+    //need to put this in so that we can change rate of spin based on model
+    // also need to check which axis to spin on  
+        let angle = time*0.001*.00001*Math.PI*2;
+        for(let i = 0; i< scene.models.length; i++){
+            console.log(scene.models[1].vertices);
+                for(let j = 0; j < scene.models[i].vertices.length; j++){
+                    let subtract = new Matrix(4,4);
+                    let rotate = new Matrix(4,4);
+                    let addBack = new Matrix(4,4);
+                    //let tempX = scene.models[i].vertices[j].x;
+                    let tempY = scene.models[i].vertices[j].y;
+                    let tempZ = scene.models[i].vertices[j].z;
+                    mat4x4Translate(subtract, 0, -tempY, -tempZ);
+                    mat4x4RotateX(rotate,angle);
+                    mat4x4Translate(addBack, 0, tempY, tempZ);
+                    scene.models[i].vertices[j] = Matrix.multiply([subtract,rotate,addBack,scene.models[i].vertices[j]]);
+                    //console.log(scene.models[i].vertices[0]);
+                }
+                ctx.clearRect(0, 0, view.width, view.height);
+            
+
+        
+} 
 
     // step 3: draw scene
     drawScene();
-
     // step 4: request next animation frame (recursively calling same function)
     // (may want to leave commented out while debugging initially)
-    // window.requestAnimationFrame(animate);
+    window.requestAnimationFrame(animate);
 }
+function computeVertAndEdge(){
 
-// Main drawing code - use information contained in variable `scene`
-function drawScene() {
-    var transform;
-    let model = [];
-    let windowTS = new Matrix(4,4);
-    windowTS.values = [[view.width/2, 0, 0, view.width/2],
-                       [0, view.height/2, 0, view.height/2],
-                       [0, 0, 1, 0],
-                       [0, 0, 0, 1]];
-    // TODO: implement drawing here!
-    // For each model, for each edge
-    //  * transform to canonical view volume
-    //console.log(scene.view.prp);
     for(let i = 0; i< scene.models.length; i++){
-        console.log(scene.models[i].type);
-        model.push([]);
         if(scene.models[i].type == 'cube') {
             halfHeight = scene.models[i].height/2;
             halfWidth = scene.models[i].width/2;
@@ -151,7 +159,7 @@ function drawScene() {
                 scene.models[i].edges[newEdge] = [0,j];
                 newEdge++;
             }
-
+    
         } else if(scene.models[i].type == 'cylinder') {
             let cos = Math.cos(0.0);
             let sin = Math.sin(0.0);
@@ -163,6 +171,7 @@ function drawScene() {
             scene.models[i].edges = [];
             scene.models[i].edges[0] = [];
             scene.models[i].edges[1] = [];
+            radius = scene.models[i].radius;
             scene.models[i].vertices.push(Vector4(center.x + radius * cos, center.y + radius * sin, fz, 1));
             scene.models[i].vertices.push(Vector4(center.x + radius * cos, center.y + radius * sin, bz, 1));
                 
@@ -172,7 +181,7 @@ function drawScene() {
                 scene.models[i].vertices.push(Vector4(center.x + radius * cos, center.y + radius * sin, fz, 1));
                 scene.models[i].vertices.push(Vector4(center.x + radius * cos, center.y + radius * sin, bz, 1));
             }
-
+    
             let newEdge = 2;
             for(let j = 0; j < scene.models[i].vertices.length; ++j) {
                 if(j%2 == 0) {
@@ -200,10 +209,10 @@ function drawScene() {
             let placeholder = 0;
             let newEdge = 0;
             if(scene.models[i].slices % 2 == 0) {
-                depth = depth + initialr/scene.models[i].slices;
+                depth = depth + 1;//initialr/scene.models[i].slices;
             }
             if(scene.models[i].stacks % 2 == 0) {
-                depth2 = depth2 + initialr/scene.models[i].slices;
+                depth2 = depth2 + 1;//initialr/scene.models[i].slices;
             }
             for(let j = 0; j < scene.models[i].slices/2; j++) {
                 scene.models[i].vertices.push(Vector4(center.x + radius * cos, center.y + radius * sin, center.z + depth, 1));
@@ -214,9 +223,9 @@ function drawScene() {
                     scene.models[i].vertices.push(Vector4(center.x + radius * cos, center.y + radius * sin, center.z + depth, 1));
                     scene.models[i].vertices.push(Vector4(center.x + radius * cos, center.y + radius * sin, center.z - depth, 1));
                 }
-                radius = radius * .9;
-                depth = depth + initialr/scene.models[i].slices
-
+                radius = radius *.95;// (initialr - scene.models[i].slices);
+                depth = depth + 1.55;//+ initialr/scene.models[i].slices
+    
                 
                 scene.models[i].edges[newEdge] = [];
                 scene.models[i].edges[newEdge+1] = [];
@@ -232,7 +241,7 @@ function drawScene() {
                 newEdge += 2;
                 placeholder = scene.models[i].vertices.length;
             }
-
+    
             
             for(let j = 0; j < scene.models[i].stacks/2; j++) {
                 scene.models[i].vertices.push(Vector4(center.x + radius2 * cos, center.y + depth2, center.z + radius2 * sin, 1));
@@ -243,8 +252,8 @@ function drawScene() {
                     scene.models[i].vertices.push(Vector4(center.x + radius2 * cos, center.y + depth2, center.z + radius2 * sin, 1));
                     scene.models[i].vertices.push(Vector4(center.x + radius2 * cos, center.y - depth2, center.z + radius2 * sin, 1));
                 }
-                //radius2 = radius - (initialr / (j + 1));
-                depth2 = depth2 + initialr/scene.models[i].stacks
+                radius2 = radius2*.95;// - (initialr / scene.models[i].stacks);
+                depth2 = depth2 + 1.55;//initialr/scene.models[i].stacks;
                 scene.models[i].edges[newEdge] = [];
                 scene.models[i].edges[newEdge+1] = [];
                 for(let k = placeholder; k < scene.models[i].vertices.length; ++k) {
@@ -256,12 +265,33 @@ function drawScene() {
                         
                 }
             }
-
-            console.log(radius);
-            console.log(radius2);
-            console.log(initialr);
-
+    
+            //console.log(radius);
+            //console.log(radius2);
+            //console.log(initialr);
+    
         }
+    }
+
+  
+}
+// Main drawing code - use information contained in variable `scene`
+function drawScene() {
+    var transform;
+    let model = [];
+    let windowTS = new Matrix(4,4);
+    windowTS.values = [[view.width/2, 0, 0, view.width/2],
+                       [0, view.height/2, 0, view.height/2],
+                       [0, 0, 1, 0],
+                       [0, 0, 0, 1]];
+    // TODO: implement drawing here!
+    // For each model, for each edge
+    //  * transform to canonical view volume
+    //console.log(scene.view.prp);
+    for(let i = 0; i< scene.models.length; i++){
+        console.log(scene.models[i].type);
+        model.push([]);
+
         //console.log(scene.models[i].edges);
         if(scene.view.type == 'perspective') {
             transform = mat4x4Perspective(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
@@ -416,6 +446,7 @@ function clipLineParallel(line) {
             }
 
             p = calculateIntersectionPara(line.pt0, line.pt1, outcode);
+
             //console.log("clipped",p);
             if(outcode == out0) {
                 p0 = p;
