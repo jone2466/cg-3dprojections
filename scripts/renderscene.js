@@ -94,6 +94,8 @@ function animate(timestamp) {
                     //let tempX = scene.models[i].vertices[j].x;
                     let tempY = scene.models[i].vertices[j].y;
                     let tempZ = scene.models[i].vertices[j].z;
+                    // console.log(tempY);
+                    // console.log(tempZ);
                     mat4x4Translate(subtract, 0, -tempY, -tempZ);
                     mat4x4RotateX(rotate,angle);
                     mat4x4Translate(addBack, 0, tempY, tempZ);
@@ -101,10 +103,7 @@ function animate(timestamp) {
                     //console.log(scene.models[i].vertices[0]);
                 }
                 ctx.clearRect(0, 0, view.width, view.height);
-            
-
-        
-} 
+        } 
 
     // step 3: draw scene
     drawScene();
@@ -673,6 +672,7 @@ function loadNewScene() {
             }
             scene.models[i].matrix = new Matrix(4, 4);
         }
+        computeVertAndEdge();
     };
     reader.readAsText(scene_file.files[0], 'UTF-8');
 }
