@@ -32,7 +32,7 @@ function init() {
             clip: [-19, 5, -10, 8, 12, 100]
         },
         models: [
-            /*{
+            {
                 type: 'generic',
                 vertices: [
                     Vector4( 0,  0, -30, 1),
@@ -55,21 +55,30 @@ function init() {
                     [3, 8],
                     [4, 9]
                 ],
+                animation: {
+                    axis: "x",
+                    rps: 0.5
+                },
                 matrix: new Matrix(4, 4)
-            },*/
+            },
             {
                 type: "sphere",
                 center: Vector4(12, 10, -49, 1),
                 radius: 12,
                 stacks: 10,
                 slices: 10,
+                animation: {
+                    axis: "z",
+                    rps: 0.5
+                },
                 matrix: new Matrix(4,4)
             }
         ]
     };
     // event handler for pressing arrow keys
+    computeVertAndEdge();
     document.addEventListener('keydown', onKeyDown, false);
-    
+
     // start animation loop
     start_time = performance.now(); // current timestamp in milliseconds
     window.requestAnimationFrame(animate);
@@ -78,26 +87,36 @@ function init() {
 // Animation loop - repeatedly calls rendering code
 function animate(timestamp) {
     // step 1: calculate time (time since start)
-    let time = timestamp - start_time;
-    start_time = time;
+    let prev_time = 0;
+    let time = (timestamp - start_time)/1000;
+    prev_time = time;
     // step 2: transform models based on time
     //need to put this in so that we can change rate of spin based on model
     // also need to check which axis to spin on  
-        let angle = time*0.001*1*Math.PI*2;
         for(let i = 0; i< scene.models.length; i++){
             //console.log(scene.models[1].vertices);
-                    let subtract = new Matrix(4,4);
-                    let rotate = new Matrix(4,4);
-                    let addBack = new Matrix(4,4);
-                    let tempX = scene.models[i].center.x;
-                    let tempY = scene.models[i].center.y;
-                    let tempZ = scene.models[i].center.z;
-                    // console.log(tempY);
-                    // console.log(tempZ);
-                    mat4x4Translate(subtract, -tempX, -tempY, -tempZ);
+            if(scene.models[i].animation != undefined){
+                let angle = (time)*scene.models[i].animation.rps*(Math.PI*2);
+                let subtract = new Matrix(4,4);
+                let rotate = new Matrix(4,4);
+                let addBack = new Matrix(4,4);
+                let tempX = scene.models[i].center.x;
+                let tempY = scene.models[i].center.y;
+                let tempZ = scene.models[i].center.z;
+                // console.log(tempY);
+                // console.log(tempZ);
+                mat4x4Translate(subtract, -tempX, -tempY, -tempZ);
+                if(scene.models[i].animation.axis == "x"){
                     mat4x4RotateX(rotate,angle);
-                    mat4x4Translate(addBack, tempX, tempY, tempZ);
-                    scene.models[i].matrix = Matrix.multiply([addBack,rotate,subtract]);
+                }else if(scene.models[i].animation.axis == "y"){
+                    mat4x4RotateY(rotate,angle);
+                }else{
+                    mat4x4RotateZ(rotate,angle);
+                }
+                mat4x4Translate(addBack, tempX, tempY, tempZ);
+                scene.models[i].matrix = Matrix.multiply([addBack,rotate,subtract]);
+            }
+
                     //console.log(scene.models[i].vertices[0]);
                 ctx.clearRect(0, 0, view.width, view.height);
         } 
@@ -266,6 +285,39 @@ function computeVertAndEdge(){
             //console.log(radius2);
             //console.log(initialr);
     
+        }else{
+            let hx = scene.models[i].vertices[0].x;
+            let lx = scene.models[i].vertices[0].x;
+            let hy = scene.models[i].vertices[0].y;
+            let ly = scene.models[i].vertices[0].y;
+            let hz = scene.models[i].vertices[0].z;
+            let lz = scene.models[i].vertices[0].z;
+            for(let j = 1; j<scene.models[i].vertices.length; j++){
+                if(lx > scene.models[i].vertices[j].x){
+                    lx = scene.models[i].vertices[j].x;
+                }
+                if(ly > scene.models[i].vertices[j].y){
+                    ly = scene.models[i].vertices[j].y;
+                }
+                if(lz > scene.models[i].vertices[j].z){
+                    lz = scene.models[i].vertices[j].z;
+                }
+                if(hx < scene.models[i].vertices[j].x){
+                    hx = scene.models[i].vertices[j].x;
+                }
+                if(hy < scene.models[i].vertices[j].y){
+                    hy = scene.models[i].vertices[j].y;
+                }
+                if(hz < scene.models[i].vertices[j].y){
+                    hz = scene.models[i].vertices[j].z;
+                }
+            }
+            px = (hx + lx)/2;
+            py = (hy + ly)/2;
+            pz = (hz + lz)/2;
+
+            scene.models[i].center = Vector4(px,py,pz,1);
+
         }
     }
 
@@ -284,7 +336,7 @@ function drawScene() {
     // For each model, for each edge
     //  * transform to canonical view volume
     //console.log(scene.view.prp);
-    computeVertAndEdge();
+    //computeVertAndEdge();
     for(let i = 0; i< scene.models.length; i++){
         console.log(scene.models[i].type);
         model.push([]);
@@ -670,7 +722,7 @@ function loadNewScene() {
             }
             scene.models[i].matrix = new Matrix(4, 4);
         }
-        //computeVertAndEdge();
+        computeVertAndEdge();
     };
     reader.readAsText(scene_file.files[0], 'UTF-8');
 }
