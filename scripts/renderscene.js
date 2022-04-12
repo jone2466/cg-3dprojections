@@ -67,7 +67,6 @@ function init() {
             }
         ]
     };
-    computeVertAndEdge();
     // event handler for pressing arrow keys
     document.addEventListener('keydown', onKeyDown, false);
     
@@ -87,7 +86,6 @@ function animate(timestamp) {
         let angle = time*0.001*1*Math.PI*2;
         for(let i = 0; i< scene.models.length; i++){
             //console.log(scene.models[1].vertices);
-                for(let j = 0; j < scene.models[i].vertices.length; j++){
                     let subtract = new Matrix(4,4);
                     let rotate = new Matrix(4,4);
                     let addBack = new Matrix(4,4);
@@ -101,7 +99,6 @@ function animate(timestamp) {
                     mat4x4Translate(addBack, tempX, tempY, tempZ);
                     scene.models[i].matrix = Matrix.multiply([addBack,rotate,subtract]);
                     //console.log(scene.models[i].vertices[0]);
-                }
                 ctx.clearRect(0, 0, view.width, view.height);
         } 
 
@@ -287,6 +284,7 @@ function drawScene() {
     // For each model, for each edge
     //  * transform to canonical view volume
     //console.log(scene.view.prp);
+    computeVertAndEdge();
     for(let i = 0; i< scene.models.length; i++){
         console.log(scene.models[i].type);
         model.push([]);
@@ -672,7 +670,7 @@ function loadNewScene() {
             }
             scene.models[i].matrix = new Matrix(4, 4);
         }
-        computeVertAndEdge();
+        //computeVertAndEdge();
     };
     reader.readAsText(scene_file.files[0], 'UTF-8');
 }
