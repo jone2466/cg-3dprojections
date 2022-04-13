@@ -33,7 +33,7 @@ function init() {
         },
         models: [
             {
-                /*type: 'generic',
+                type: 'generic',
                 vertices: [
                     Vector4( 0,  0, -30, 1),
                     Vector4(20,  0, -30, 1),
@@ -55,22 +55,22 @@ function init() {
                     [3, 8],
                     [4, 9]
                 ],
-                /*animation: {
-                    axis: "x",
+                animation: {
+                    axis: "y",
                     rps: 0.5
                 },
                 matrix: new Matrix(4, 4) 
             },
-            { */
+            { 
                 type: "sphere",
                 center: Vector4(12, 10, -49, 1),
                 radius: 12,
-                stacks: 3,
-                slices: 3,
-                /*animation: {
+                stacks: 20,
+                slices: 20,
+                animation: {
                     axis: "z",
                     rps: 0.5
-                },*/
+                },
                 matrix: new Matrix(4,4)
             }
         ]
@@ -226,7 +226,6 @@ function computeVertAndEdge(){
             let tempZ = scene.models[i].center.z;
             let rotationMatrix = new Matrix(4,4);
             let checker = 0;
-
             for(let j = 0; j < scene.models[i].slices; j++) { 
                 mat4x4Translate(subtract, -tempX, -tempY, -tempZ);
                 mat4x4RotateY(rotate,angle);
@@ -256,23 +255,30 @@ function computeVertAndEdge(){
 
             angle = 0;
             newStart = scene.models[i].edges.length;
-            console.log(scene.models[i].edges.length);
-            checker = scene.models[i].edges.length;
+            //console.log(scene.models[i].edges.length);
+            /*checker = scene.models[i].edges.length;
             for(let j = 0; j<scene.models[i].stacks-1; j++){
                 scene.models[i].edges[checker] = [];
                 checker++;  
-            }
+            }*/
+            //console.log(scene.models[i].edges);
             //console.log(scene.models[i].vertices);
             let tempSpot = 0;
-            for(let j = 0; j<scene.models[i].edges[0].length; j++){
-                for(k = 0; k<scene.models[i].slices; k++){
-                    //console.log("j short", j%Math.floor(scene.models[i].edges[0].length/2), "temp", tempSpot);
-                    if(j%Math.floor(scene.models[i].edges[0].length/2)!=0){
-                        scene.models[i].edges[(j%Math.floor(scene.models[i].edges[0].length/2))+scene.models[i].slices].push(scene.models[i].edges[k][tempSpot]);
+            let edgeLength = scene.models[i].edges.length;
+            for(let j = 0; j<edgeLength; j++){
+                for(let k = 0; k<scene.models[i].edges[j].length; k++){
+                    //console.log(scene.models[i].edges);
+                    //console.log(scene.models[i].slices + (scene.models[i].edges[j][k] % scene.models[i].edges[j].length));
+                    if(scene.models[i].edges[scene.models[i].slices + (scene.models[i].edges[j][k] % scene.models[i].edges[j].length)] == undefined) {
+                        scene.models[i].edges[scene.models[i].slices + (scene.models[i].edges[j][k] % scene.models[i].edges[j].length)] = [];
                     }
-
+                    
+                    scene.models[i].edges[scene.models[i].slices + (scene.models[i].edges[j][k] % scene.models[i].edges[j].length)].push(scene.models[i].edges[j][k]);
                 }
-                tempSpot++;
+            }
+
+            for(let j = scene.models[i].slices; j < scene.models[i].edges.length;j++) {
+                scene.models[i].edges[j].push(scene.models[i].edges[j][0]);
             }
             console.log(scene.models[i].edges);
             // for(let j = 0; j < scene.models[i].stacks; j++) {
