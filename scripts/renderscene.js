@@ -33,7 +33,7 @@ function init() {
         },
         models: [
             {
-                type: 'generic',
+                /*type: 'generic',
                 vertices: [
                     Vector4( 0,  0, -30, 1),
                     Vector4(20,  0, -30, 1),
@@ -58,15 +58,15 @@ function init() {
                 /*animation: {
                     axis: "x",
                     rps: 0.5
-                },*/
-                matrix: new Matrix(4, 4)
+                },
+                matrix: new Matrix(4, 4) 
             },
-            {
+            { */
                 type: "sphere",
                 center: Vector4(12, 10, -49, 1),
                 radius: 12,
-                stacks: 10,
-                slices: 5,
+                stacks: 5,
+                slices: 2,
                 /*animation: {
                     axis: "z",
                     rps: 0.5
@@ -209,8 +209,8 @@ function computeVertAndEdge(){
                 }
             }
         } else if (scene.models[i].type == 'sphere') {
-            let cos = Math.cos(Math.PI/2);
-            let sin = Math.sin(Math.PI/2);
+            let cos = Math.cos(0.0);
+            let sin = Math.sin(0.0);
             let sides = 20;
             let radius = scene.models[i].radius;
             let center = scene.models[i].center;
@@ -234,9 +234,9 @@ function computeVertAndEdge(){
                 mat4x4Translate(addBack, tempX, tempY, tempZ);
                 rotationMatrix = Matrix.multiply([addBack,rotate,subtract]);
                 scene.models[i].vertices.push(Matrix.multiply([rotationMatrix,Vector4(center.x + radius * cos, center.y + radius * sin, center.z, 1)]));
-                for(let k = 0; k < scene.models[i].stacks*2; ++k) {
-                    cos = Math.cos(((k+1) * Math.PI)/(scene.models[i].stacks * 2) - Math.PI/2);
-                    sin = Math.sin(((k+1) * Math.PI)/(scene.models[i].stacks * 2) - Math.PI/2);
+                for(let k = 0; k < scene.models[i].stacks; ++k) {
+                    cos = Math.cos(((k+1) * 2 * Math.PI)/(scene.models[i].stacks));
+                    sin = Math.sin(((k+1) * 2 * Math.PI)/(scene.models[i].stacks));
                     scene.models[i].vertices.push(Matrix.multiply([rotationMatrix,Vector4(center.x + radius * cos, center.y + radius * sin, center.z, 1)]));
                 }
                 scene.models[i].edges[j] = [];
