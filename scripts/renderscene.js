@@ -65,8 +65,8 @@ function init() {
                 type: "sphere",
                 center: Vector4(12, 10, -49, 1),
                 radius: 12,
-                stacks: 20,
-                slices: 20,
+                stacks: 3,
+                slices: 3,
                 /*animation: {
                     axis: "z",
                     rps: 0.5
@@ -227,59 +227,76 @@ function computeVertAndEdge(){
             let rotationMatrix = new Matrix(4,4);
             let checker = 0;
 
-            for(let j = 0; j < scene.models[i].slices; j++) {
+            for(let j = 0; j < scene.models[i].slices; j++) { 
                 mat4x4Translate(subtract, -tempX, -tempY, -tempZ);
                 mat4x4RotateY(rotate,angle);
                 mat4x4Translate(addBack, tempX, tempY, tempZ);
                 rotationMatrix = Matrix.multiply([addBack,rotate,subtract]);
-                scene.models[i].vertices.push(Matrix.multiply([rotationMatrix,Vector4(center.x + radius * cos, center.y + radius * sin, center.z, 1)]));
-                for(let k = 0; k < scene.models[i].stacks*2; ++k) {
-                    cos = Math.cos(((k+1) * 2 * Math.PI)/(scene.models[i].stacks*2));
-                    sin = Math.sin(((k+1) * 2 * Math.PI)/(scene.models[i].stacks*2));
-                    scene.models[i].vertices.push(Matrix.multiply([rotationMatrix,Vector4(center.x + radius * cos, center.y + radius * sin, center.z, 1)]));
+                scene.models[i].vertices.push(Matrix.multiply([rotationMatrix,Vector4(center.x + radius * sin, center.y + radius * cos, center.z, 1)]));
+                for(let k = 0; k < (scene.models[i].stacks) * 2; ++k) {
+                    if(k < scene.models[i].stacks) {
+                        cos = Math.cos(((k+1) * Math.PI)/(scene.models[i].stacks));
+                        sin = Math.sin(((k+1) * Math.PI)/(scene.models[i].stacks));
+                        scene.models[i].vertices.push(Matrix.multiply([rotationMatrix,Vector4(center.x + radius * sin, center.y + radius * cos, center.z, 1)]));
+                    }
+                    if(k == scene.models[i].stacks * 2 - 1) {
+                        cos = Math.cos(((k+1) * Math.PI)/(scene.models[i].stacks));
+                        sin = Math.sin(((k+1) * Math.PI)/(scene.models[i].stacks));
+                        scene.models[i].vertices.push(Matrix.multiply([rotationMatrix,Vector4(center.x + radius * sin, center.y + radius * cos, center.z, 1)]));
+                    }
                 }
                 scene.models[i].edges[j] = [];
-                for(let k = checker; k < scene.models[i].vertices.length; k++) {
+                scene.models[i].edges[j].push(scene.models[i].vertices.length-1);
+                for(let k = checker; k < scene.models[i].vertices.length-1; k++) {
                     scene.models[i].edges[j].push(k);
                 }
                 checker = scene.models[i].vertices.length;
-                angle = angle + ((Math.PI)/(scene.models[i].slices));
-                
+                angle = angle + (Math.PI*2)/(scene.models[i].slices);                
             }
+
             angle = 0;
             newStart = scene.models[i].edges.length;
-            for(let j = 0; j < scene.models[i].stacks; j++) {
-                mat4x4Translate(subtract, -tempX, -tempY, -tempZ);
-                mat4x4RotateX(rotate,angle);
-                mat4x4Translate(addBack, tempX, tempY, tempZ);
-                rotationMatrix = Matrix.multiply([addBack,rotate,subtract]);
-                scene.models[i].vertices.push(Matrix.multiply([rotationMatrix,Vector4(center.x + radius * sin, center.y + radius * cos, center.z, 1)]));
-                for(let k = 0; k < scene.models[i].slices*2; ++k) {
-                    cos = Math.cos(((k+1) * 2 * Math.PI)/(scene.models[i].stacks*2));
-                    sin = Math.sin(((k+1) * 2 * Math.PI)/(scene.models[i].stacks*2));
-                    scene.models[i].vertices.push(Matrix.multiply([rotationMatrix,Vector4(center.x + radius * sin, center.y + radius * cos, center.z, 1)]));
-                }
-                scene.models[i].edges[newStart] = [];
-                for(let k = checker; k < scene.models[i].vertices.length; k++) {
-                    scene.models[i].edges[newStart].push(k);
-                }
-                newStart++;
-                checker = scene.models[i].vertices.length;
-                angle = angle + ((Math.PI)/(scene.models[i].slices));
-                
+            console.log(scene.models[i].edges.length);
+            checker = scene.models[i].edges.length;
+            for(let j = 0; j<scene.models[i].stacks-1; j++){
+                scene.models[i].edges[checker] = [];
+                checker++;  
             }
-             console.log(scene.models[i].vertices);
-            // console.log(scene.models[i].edges.length);
-            // checker = scene.models[i].edges.length;
-            // for(let j = 0; j<scene.models[i].slices; j++){
-            //     scene.models[i].edges[checker] = [];
-            //     checker++;  
+            //console.log(scene.models[i].vertices);
+            let tempSpot = 0;
+            for(let j = 0; j<scene.models[i].edges[0].length; j++){
+                for(k = 0; k<scene.models[i].slices; k++){
+                    //console.log("j short", j%Math.floor(scene.models[i].edges[0].length/2), "temp", tempSpot);
+                    if(j%Math.floor(scene.models[i].edges[0].length/2)!=0){
+                        scene.models[i].edges[(j%Math.floor(scene.models[i].edges[0].length/2))+scene.models[i].slices].push(scene.models[i].edges[k][tempSpot]);
+                    }
+
+                }
+                tempSpot++;
+            }
+            console.log(scene.models[i].edges);
+            // for(let j = 0; j < scene.models[i].stacks; j++) {
+            //     mat4x4Translate(subtract, -tempX, -tempY, -tempZ);
+            //     mat4x4RotateX(rotate,angle);
+            //     mat4x4Translate(addBack, tempX, tempY, tempZ);
+            //     rotationMatrix = Matrix.multiply([addBack,rotate,subtract]);
+            //     scene.models[i].vertices.push(Matrix.multiply([rotationMatrix,Vector4(center.x + radius * sin, center.y + radius * cos, center.z, 1)]));
+            //     for(let k = 0; k < scene.models[i].slices*2; ++k) {
+            //         cos = Math.cos(((k+1) * 2 * Math.PI)/(scene.models[i].stacks*2));
+            //         sin = Math.sin(((k+1) * 2 * Math.PI)/(scene.models[i].stacks*2));
+            //         scene.models[i].vertices.push(Matrix.multiply([rotationMatrix,Vector4(center.x + radius * sin, center.y + radius * cos, center.z, 1)]));
+            //     }
+            //     scene.models[i].edges[newStart] = [];
+            //     for(let k = checker; k < scene.models[i].vertices.length; k++) {
+            //         scene.models[i].edges[newStart].push(k);
+            //     }
+            //     newStart++;
+            //     checker = scene.models[i].vertices.length;
+            //     angle = angle + ((Math.PI)/(scene.models[i].slices));
+                
             // }
-            // console.log(scene.models[i].vertices)
-            // for(let j = 0; i<scene.models[i].slices; j++){
-            //               123 456 789
-            //     for(k = 0; )
-            // }
+            //  console.log(scene.models[i].vertices);
+
             //set the next position of edges
             //loop through  stacks
             //loop through each vertices and push to that current edge
@@ -633,6 +650,7 @@ function onKeyDown(event) {
             u.normalize();
             v = n.cross(u);
             scene.view.srp = scene.view.srp.add(u);
+            console.log(scene.view.srp.x, scene.view.srp.y, scene.view.srp.z);
             ctx.clearRect(0, 0, view.width, view.height);
             drawScene();
             break;
