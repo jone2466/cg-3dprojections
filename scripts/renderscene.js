@@ -65,8 +65,8 @@ function init() {
                 type: "sphere",
                 center: Vector4(12, 10, -49, 1),
                 radius: 12,
-                stacks: 5,
-                slices: 2,
+                stacks: 20,
+                slices: 20,
                 /*animation: {
                     axis: "z",
                     rps: 0.5
@@ -217,8 +217,7 @@ function computeVertAndEdge(){
             scene.models[i].edges = [];
             scene.models[i].edges[0] = [];
             scene.models[i].vertices = [];
-
-            let angle = (Math.PI*2)/(scene.models[i].slices);
+            let angle = 0;
             let subtract = new Matrix(4,4);
             let rotate = new Matrix(4,4);
             let addBack = new Matrix(4,4);
@@ -234,9 +233,9 @@ function computeVertAndEdge(){
                 mat4x4Translate(addBack, tempX, tempY, tempZ);
                 rotationMatrix = Matrix.multiply([addBack,rotate,subtract]);
                 scene.models[i].vertices.push(Matrix.multiply([rotationMatrix,Vector4(center.x + radius * cos, center.y + radius * sin, center.z, 1)]));
-                for(let k = 0; k < scene.models[i].stacks; ++k) {
-                    cos = Math.cos(((k+1) * 2 * Math.PI)/(scene.models[i].stacks));
-                    sin = Math.sin(((k+1) * 2 * Math.PI)/(scene.models[i].stacks));
+                for(let k = 0; k < scene.models[i].stacks*2; ++k) {
+                    cos = Math.cos(((k+1) * 2 * Math.PI)/(scene.models[i].stacks*2));
+                    sin = Math.sin(((k+1) * 2 * Math.PI)/(scene.models[i].stacks*2));
                     scene.models[i].vertices.push(Matrix.multiply([rotationMatrix,Vector4(center.x + radius * cos, center.y + radius * sin, center.z, 1)]));
                 }
                 scene.models[i].edges[j] = [];
@@ -244,10 +243,46 @@ function computeVertAndEdge(){
                     scene.models[i].edges[j].push(k);
                 }
                 checker = scene.models[i].vertices.length;
-                angle += angle;
+                angle = angle + ((Math.PI)/(scene.models[i].slices));
                 
             }
-
+            angle = 0;
+            newStart = scene.models[i].edges.length;
+            for(let j = 0; j < scene.models[i].stacks; j++) {
+                mat4x4Translate(subtract, -tempX, -tempY, -tempZ);
+                mat4x4RotateX(rotate,angle);
+                mat4x4Translate(addBack, tempX, tempY, tempZ);
+                rotationMatrix = Matrix.multiply([addBack,rotate,subtract]);
+                scene.models[i].vertices.push(Matrix.multiply([rotationMatrix,Vector4(center.x + radius * sin, center.y + radius * cos, center.z, 1)]));
+                for(let k = 0; k < scene.models[i].slices*2; ++k) {
+                    cos = Math.cos(((k+1) * 2 * Math.PI)/(scene.models[i].stacks*2));
+                    sin = Math.sin(((k+1) * 2 * Math.PI)/(scene.models[i].stacks*2));
+                    scene.models[i].vertices.push(Matrix.multiply([rotationMatrix,Vector4(center.x + radius * sin, center.y + radius * cos, center.z, 1)]));
+                }
+                scene.models[i].edges[newStart] = [];
+                for(let k = checker; k < scene.models[i].vertices.length; k++) {
+                    scene.models[i].edges[newStart].push(k);
+                }
+                newStart++;
+                checker = scene.models[i].vertices.length;
+                angle = angle + ((Math.PI)/(scene.models[i].slices));
+                
+            }
+             console.log(scene.models[i].vertices);
+            // console.log(scene.models[i].edges.length);
+            // checker = scene.models[i].edges.length;
+            // for(let j = 0; j<scene.models[i].slices; j++){
+            //     scene.models[i].edges[checker] = [];
+            //     checker++;  
+            // }
+            // console.log(scene.models[i].vertices)
+            // for(let j = 0; i<scene.models[i].slices; j++){
+            //               123 456 789
+            //     for(k = 0; )
+            // }
+            //set the next position of edges
+            //loop through  stacks
+            //loop through each vertices and push to that current edge
             
     
         }else{
