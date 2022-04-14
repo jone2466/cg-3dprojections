@@ -25,7 +25,7 @@ function init() {
     // initial scene... feel free to change this
     scene = {
         view: {
-            type: 'perspective',
+            type: 'parallel',
             prp: Vector3(44, 20, -16),
             srp: Vector3(20, 20, -40),
             vup: Vector3(0, 1, 0),
@@ -280,7 +280,7 @@ function computeVertAndEdge(){
             for(let j = scene.models[i].slices; j < scene.models[i].edges.length;j++) {
                 scene.models[i].edges[j].push(scene.models[i].edges[j][0]);
             }
-            console.log(scene.models[i].edges);
+            //console.log(scene.models[i].edges);
             // for(let j = 0; j < scene.models[i].stacks; j++) {
             //     mat4x4Translate(subtract, -tempX, -tempY, -tempZ);
             //     mat4x4RotateX(rotate,angle);
@@ -402,11 +402,11 @@ function drawScene() {
             
         }else{
             transform = mat4x4Parallel(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
-            console.log(scene.models[i]);
+            //console.log(scene.models[i]);
             for(let j = 0; j < scene.models[i].edges.length; ++j) {
                 for(let k = 0; k < scene.models[i].edges[j].length-1;++k) {
-                    let p0 = Matrix.multiply([transform, scene.models[i].vertices[scene.models[i].edges[j][k]]]);
-                    let p1 = Matrix.multiply([transform, scene.models[i].vertices[scene.models[i].edges[j][k+1]]]);
+                    let p0 = Matrix.multiply([transform,scene.models[i].matrix, scene.models[i].vertices[scene.models[i].edges[j][k]]]);
+                    let p1 = Matrix.multiply([transform,scene.models[i].matrix, scene.models[i].vertices[scene.models[i].edges[j][k+1]]]);
                     let line = {
                         pt0: p0,
                         pt1: p1
@@ -647,28 +647,89 @@ function calculateIntersectionPersp(p0, p1, outcode) {
 }
 // Called when user presses a key on the keyboard down 
 function onKeyDown(event) {
+    let angle;
+    let subtract;
+    let rotateX;
+    let rotateY;
+    let rotateZ;
+    let addBack;
+
+    let tempX;
+    let tempY;
+    let tempZ;
+    let tempVect;
     switch (event.keyCode) {
         case 37: // LEFT Arrow
-            console.log("left");
+            //console.log("left");
             n = scene.view.prp.subtract(scene.view.srp)
             n.normalize();
             u = scene.view.vup.cross(n)
             u.normalize();
             v = n.cross(u);
-            scene.view.srp = scene.view.srp.add(u);
-            console.log(scene.view.srp.x, scene.view.srp.y, scene.view.srp.z);
-            ctx.clearRect(0, 0, view.width, view.height);
+            angle = -.11;
+            subtract = new Matrix(4,4);
+            rotateX = new Matrix(4,4);
+            rotateY = new Matrix(4,4);
+            rotateZ = new Matrix(4,4);
+            addBack = new Matrix(4,4);
+
+            tempX = scene.view.prp.x;
+            tempY = scene.view.prp.y;
+            tempZ = scene.view.prp.z;
+            tempVect = Vector4(scene.view.srp.x,scene.view.srp.y,scene.view.srp.z,1);
+            // console.log(tempY);
+            // console.log(tempZ);
+            mat4x4Translate(subtract, -tempX, -tempY, -tempZ);
+            mat4x4RotateX(rotateX,angle*v.x);
+            mat4x4RotateY(rotateY,angle*v.y);
+            mat4x4RotateZ(rotateZ,angle*v.z);
+            mat4x4Translate(addBack, tempX, tempY, tempZ);
+            
+            
+
+            tempVect = Matrix.multiply([addBack,rotateX,rotateY,rotateZ,subtract,tempVect]);
+            //console.log(scene.view.srp);
+            scene.view.srp.x = tempVect.x;
+            scene.view.srp.y = tempVect.y;
+            scene.view.srp.z = tempVect.z;
+            // console.log(scene.view.srp.x, scene.view.srp.y, scene.view.srp.z);
+            // ctx.clearRect(0, 0, view.width, view.height);
             drawScene();
             break;
         case 39: // RIGHT Arrow
-            console.log("right");
             n = scene.view.prp.subtract(scene.view.srp)
             n.normalize();
             u = scene.view.vup.cross(n)
             u.normalize();
             v = n.cross(u);
-            scene.view.srp = scene.view.srp.subtract(u);
-            ctx.clearRect(0, 0, view.width, view.height);
+            angle = .11;
+            subtract = new Matrix(4,4);
+            rotateX = new Matrix(4,4);
+            rotateY = new Matrix(4,4);
+            rotateZ = new Matrix(4,4);
+            addBack = new Matrix(4,4);
+
+            tempX = scene.view.prp.x;
+            tempY = scene.view.prp.y;
+            tempZ = scene.view.prp.z;
+            tempVect = Vector4(scene.view.srp.x,scene.view.srp.y,scene.view.srp.z,1);
+            // console.log(tempY);
+            // console.log(tempZ);
+            mat4x4Translate(subtract, -tempX, -tempY, -tempZ);
+            mat4x4RotateX(rotateX,angle*v.x);
+            mat4x4RotateY(rotateY,angle*v.y);
+            mat4x4RotateZ(rotateZ,angle*v.z);
+            mat4x4Translate(addBack, tempX, tempY, tempZ);
+            
+            
+
+            tempVect = Matrix.multiply([addBack,rotateX,rotateY,rotateZ,subtract,tempVect]);
+            console.log(scene.view.srp);
+            scene.view.srp.x = tempVect.x;
+            scene.view.srp.y = tempVect.y;
+            scene.view.srp.z = tempVect.z;
+            // console.log(scene.view.srp.x, scene.view.srp.y, scene.view.srp.z);
+            // ctx.clearRect(0, 0, view.width, view.height);
             drawScene();
             break;
         case 65: // A key
