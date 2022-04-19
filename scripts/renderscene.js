@@ -69,7 +69,43 @@ function init() {
                 slices: 20,
                 animation: {
                     axis: "z",
+                    rps: 0.35
+                },
+                matrix: new Matrix(4,4)
+            },
+            { 
+                type: "cylinder",
+                center: Vector4(-30, 5, -49, 1),
+                radius: 12,
+                height: 5,
+                sides: 12,
+                animation: {
+                    axis: "z",
                     rps: 0.5
+                },
+                matrix: new Matrix(4,4)
+            },
+            { 
+                type: "cone",
+                center: Vector4(-30, 5, -49, 1),
+                radius: 1.5,
+                height: 5,
+                sides: 12,
+                animation: {
+                    axis: "y",
+                    rps: 0.2
+                },
+                matrix: new Matrix(4,4)
+            },
+            { 
+                type: "cube",
+                center: Vector4(-30, 5, -49, 1),
+                width: 8,
+                height: 8,
+                depth: 8,
+                animation: {
+                    axis: "x",
+                    rps: 0.05
                 },
                 matrix: new Matrix(4,4)
             }

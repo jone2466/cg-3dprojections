@@ -1,22 +1,72 @@
 {
     "view": {
-        "type": "perspective",
-        "prp": [0, 0, 10],
-        "srp": [0, 0, 0],
+        "type": "parallel",
+        "prp": [44, 20, -16],
+        "srp": [20, 20, -40],
         "vup": [0, 1, 0],
-        "clip": [-4, 20, -1, 17, 5, 75]
+        "clip": [-19, 5, -10, 8, 12, 100]
     },
     "models": [
         {
+            "type": "generic",
+            "vertices": [
+                [0,  0, -30],
+                [20,  0, -30],
+                [20, 12, -30],
+                [10, 20, -30],
+                [0, 12, -30],
+                [0,  0, -60],
+                [20,  0, -60],
+                [20, 12, -60],
+                [10, 20, -60],
+                [0, 12, -60]
+            ],
+            "edges": [
+                [0, 1, 2, 3, 4, 0],
+                [5, 6, 7, 8, 9, 5],
+                [0, 5],
+                [1, 6],
+                [2, 7],
+                [3, 8],
+                [4, 9]
+            ],
+            "animation": {
+                "axis": "y",
+                "rps": 0.5
+            }
+        },
+        { 
+            "type": "sphere",
+            "center": [12, 10, -49],
+            "radius": 12,
+            "stacks": 20,
+            "slices": 20,
+            "animation": {
+                "axis": "z",
+                "rps": 0.35
+            }
+        },
+        { 
+            "type": "cylinder",
+            "center": [-30, 5, -49],
+            "radius": 12,
+            "height": 5,
+            "sides": 12,
+            "animation": {
+                "axis": "z",
+                "rps": 0.5
+            }
+        },
+        {
             "type": "cube",
-            "center": [4, 4, -10],
+            "center": [-30, 5, -49],
             "width": 8,
             "height": 8,
             "depth": 8
         },
         {
             "type": "cone",
-            "center": [12, 10, -49],
+            "center": [-30, 5, -49],
             "radius": 1.5,
             "height": 5,
             "sides": 12,
